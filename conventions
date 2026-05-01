@@ -1,0 +1,56 @@
+# Conventions
+
+Règles minimales à respecter sur le projet.
+
+## Commits
+
+Messages en français, à l'impératif.
+
+Préfixes :
+- `feat:` nouvelle fonctionnalité
+- `fix:` correction de bug
+- `docs:` documentation
+- `style:` formatage, sans changement de logique
+- `refactor:` réécriture sans changement de comportement
+- `chore:` maintenance, dépendances, config
+
+Exemples :
+- `feat: ajoute la pagination de la recherche`
+- `fix: corrige le badge favoris qui ne se met pas à jour`
+- `docs: complète la section installation du README`
+
+
+## Branches
+
+- `main` toujours déployable
+- `feat/<sujet>` pour les fonctionnalités
+- `fix/<sujet>` pour les corrections
+- `docs/<sujet>` pour la documentation
+
+## Fichiers
+
+- Composants Vue : PascalCase (`BookCard.vue`)
+- Vues : suffixe `View` (`SearchView.vue`)
+- Stores et services : camelCase (`favorites.js`, `openLibrary.js`)
+- Une vue par route, dans `src/views/`
+- Composant réutilisé partagé : dans `src/components/`
+
+## Code
+
+- Indentation : 2 espaces
+- Guillemets simples pour les chaînes
+- `const` par défaut, `let` si nécessaire, jamais `var`
+- API Options uniquement (pas de Composition API)
+- Pas d'appel HTTP direct dans un `.vue`, passer par `src/services/`
+- Pas de `localStorage` direct dans un `.vue`, passer par un store Pinia
+
+## Style
+
+- Tailwind v4 pour tout le style
+- Tokens de couleur dans `@theme` (`main.css`)
+- Boutons via les classes partagées `.btn`, `.btn-ghost`, `.btn-danger`
+
+## Commentaires
+
+- En français
+- En-tête de fichier : nom, auteur, rôle
