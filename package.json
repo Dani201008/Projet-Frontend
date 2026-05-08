@@ -1,0 +1,24 @@
+{
+  "name": "media-explorer",
+  "version": "1.0.0",
+  "description": "Application Vue.js pour rechercher et explorer des livres via l'API OpenLibrary.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4173"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "axios": "^1.7.7",
+    "pinia": "^2.2.6",
+    "tailwindcss": "^4.0.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.4.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "vite": "^8.0.10"
+  }
+}
