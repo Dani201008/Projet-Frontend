@@ -3,7 +3,7 @@
   Auteur   : Timmy
   Rôle     : Barre de recherche réutilisable (pattern v-model).
   Créé le  : 08.05.2026
-  Modifié  : 08.05.2026
+  Modifié  : 09.05.2026
 -->
 <template>
   <!-- @submit.prevent : on intercepte la touche Entrée et on évite le rechargement de page. -->
