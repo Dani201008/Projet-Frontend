@@ -3,7 +3,7 @@
  * Auteur   : Samuel
  * Rôle     : Configuration des routes Vue Router.
  * Créé le  : 08.05.2026
- * Modifié  : 08.05.2026
+ * Modifié  : 20.05.2026
  */
 
 import { createRouter, createWebHistory } from 'vue-router'
@@ -21,6 +21,14 @@ const routes = [
     path: '/search',
     name: 'search',
     component: () => import('@/views/SearchView.vue')
+  },
+  {
+    // Fiche détaillée d'un livre. `props: true` passe le `:id` de l'URL directement
+    // en prop au composant, ce qui découple DetailView du routeur.
+    path: '/book/:id',
+    name: 'detail',
+    component: () => import('@/views/DetailView.vue'),
+    props: true
   },
   {
     // Route attrape-tout : toute URL non listée plus haut tombe ici.

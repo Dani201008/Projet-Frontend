@@ -3,7 +3,7 @@
  * Auteur   : Dani
  * Rôle     : Client Axios pour l'API OpenLibrary.
  * Créé le  : 08.05.2026
- * Modifié  : 08.05.2026
+ * Modifié  : 20.05.2026
  */
 
 import axios from 'axios'
@@ -29,6 +29,24 @@ export async function searchBooks(query, { limit = 24, page = 1 } = {}) {
   const response = await http.get('/search.json', {
     params: { q: query, limit, page }
   })
+  return response.data
+}
+
+/**
+ * Récupère les détails d'une œuvre (titre, description, sujets, couvertures…).
+ * `workId` est l'identifiant sans le préfixe « /works/ », ex. "OL45883W".
+ */
+export async function getWorkDetails(workId) {
+  const response = await http.get(`/works/${workId}.json`)
+  return response.data
+}
+
+/**
+ * Récupère la fiche d'un auteur à partir de sa clé (ex. "OL34184A").
+ * Sert à transformer les références d'auteurs d'une œuvre en noms lisibles.
+ */
+export async function getAuthor(authorKey) {
+  const response = await http.get(`/authors/${authorKey}.json`)
   return response.data
 }
 
