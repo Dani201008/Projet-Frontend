@@ -5,6 +5,7 @@
   Créé le  : 08.05.2026
   Modifié  : 20.05.2026
 -->
+
 <template>
   <section class="flex flex-col gap-6">
     <button type="button" class="self-start border border-blue-700 text-blue-700 px-4 py-2 rounded-lg" @click="goBack">
