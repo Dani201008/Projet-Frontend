@@ -1,7 +1,7 @@
 <!--
   Fichier  : src/views/SearchView.vue
-  Auteur   : Timmy (commit 1.4) puis Dani (commit 1.5 — ajout des états)
-  Rôle     : Page des résultats avec gestion explicite des états.
+  Auteur   : Timmy (commit 1.4) puis Dani (commit 1.5, ajout des états)
+  Rôle     : Page des résultats, avec les différents états (chargement, erreur, vide...).
   Créé le  : 08.05.2026
   Modifié  : 20.05.2026
 -->
@@ -10,20 +10,19 @@
     <h1 class="text-2xl font-bold">Recherche</h1>
     <SearchBar v-model="searchInput" @submit="onSearch" />
 
-    <!-- Compteur affiché seulement quand on a vraiment des résultats à montrer. -->
+    <!-- Compteur affiché uniquement quand on a des résultats. -->
     <p v-if="query && results.length && !error" class="text-sm text-gray-500">
       <strong>{{ results.length }}</strong> résultat(s) sur <strong>{{ total }}</strong> pour « {{ query }} »
     </p>
 
     <!--
-      Machine à états visuels.
-      L'ordre des v-if / v-else-if est important : Vue affiche le PREMIER vrai.
-      Cas, dans l'ordre :
-        1. loading           → spinner
-        2. error             → encart rouge avec bouton Réessayer
-        3. query mais 0 résultat → "Aucun résultat trouvé"
-        4. pas encore de query   → "Lancez une recherche"
-        5. sinon                 → la grille de résultats
+      Les différents états possibles, dans l'ordre :
+        1. loading → spinner
+        2. error   → encart rouge avec bouton Réessayer
+        3. query + 0 résultat → "Aucun résultat trouvé"
+        4. pas encore de query → "Lancez une recherche"
+        5. sinon → la grille de résultats
+      L'ordre est important, Vue affiche le PREMIER cas vrai.
     -->
     <LoadingSpinner v-if="loading" message="Recherche en cours..." />
 
@@ -66,7 +65,7 @@ export default {
 
   data() {
     return {
-      // Pré-remplit l'input avec ?q=... si présent dans l'URL.
+      // On pré-remplit l'input avec le ?q=... de l'URL s'il y en a un.
       searchInput: this.$route.query.q?.toString() || '',
       query: '',
       results: [],
@@ -77,40 +76,26 @@ export default {
   },
 
   watch: {
-    /**
-     * Réagit aux changements de `?q=` dans l'URL (validation, suggestion, bouton précédent…).
-     */
+    // Si le ?q= change dans l'URL (bouton précédent, lien direct...), on relance la recherche.
     '$route.query.q'(newQuery) {
       this.searchInput = newQuery?.toString() || ''
       if (newQuery) this.runSearch(newQuery.toString())
     }
   },
 
-  /**
-   * Au chargement de la page, si l'URL contient déjà un `?q=`,
-   * on déclenche la recherche immédiatement (cas d'un lien direct).
-   */
+  // Au chargement, si l'URL contient déjà un ?q=, on lance la recherche tout de suite.
   mounted() {
     const q = this.$route.query.q?.toString()
     if (q) this.runSearch(q)
   },
 
   methods: {
-    /**
-     * Met à jour l'URL ; le watcher ci-dessus se charge de relancer la recherche.
-     */
+    // On met à jour l'URL, le watcher au-dessus s'occupe de relancer la recherche.
     onSearch(term) {
       this.$router.push({ name: 'search', query: { q: term } })
     },
 
-    /**
-     * Appel API + transformation des résultats + gestion des erreurs.
-     *
-     * Le pattern try / catch / finally :
-     *   - try    : on tente l'appel
-     *   - catch  : on intercepte les erreurs réseau ou serveur
-     *   - finally: on coupe le spinner DANS TOUS LES CAS (succès ou échec)
-     */
+    // Appel API + tri des résultats + gestion des erreurs.
     async runSearch(term) {
       this.loading = true
       this.error = null
@@ -118,7 +103,7 @@ export default {
       try {
         const data = await searchBooks(term, { limit: 24, page: 1 })
 
-        // L'API renvoie beaucoup de champs ; on ne garde que ceux qu'on affiche.
+        // On ne garde que les champs qu'on utilise pour l'affichage.
         this.results = (data.docs || []).map(doc => ({
           id: (doc.key || '').replace('/works/', ''), // "/works/OL45W" → "OL45W"
           title: doc.title || 'Titre inconnu',
@@ -132,7 +117,7 @@ export default {
         this.error = 'Impossible de récupérer les résultats. Vérifiez votre connexion.'
         this.results = []
       } finally {
-        // Toujours couper le spinner, même en cas d'erreur, sinon il tourne à l'infini.
+        // On coupe le spinner dans tous les cas, sinon il tourne à l'infini.
         this.loading = false
       }
     }

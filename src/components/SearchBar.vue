@@ -3,7 +3,7 @@
   Auteur   : Samuel
   Rôle     : Barre de recherche réutilisable (pattern v-model).
   Créé le  : 08.05.2026
-  Modifié  : 22.05.2026
+  Modifié  : 22.05.2026, ajout text-gray-900 pour éviter le texte blanc sur fond blanc dans le hero.
 -->
 <template>
   <!-- .prevent évite le rechargement de la page quand on appuie sur Entrée. -->
@@ -11,7 +11,8 @@
     <!-- Label caché visuellement mais lu par les lecteurs d'écran. -->
     <label for="search-input" class="sr-only">Rechercher un livre</label>
 
-    <div class="flex items-center gap-2 flex-1 bg-white border border-gray-200 rounded-lg px-4">
+    <!-- text-gray-900 force le texte en foncé même quand le parent a text-white (cas du hero). -->
+    <div class="flex items-center gap-2 flex-1 bg-white border border-gray-200 rounded-lg px-4 text-gray-900">
       <span aria-hidden="true">🔍</span>
       <input
           id="search-input"

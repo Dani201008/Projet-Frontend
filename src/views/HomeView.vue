@@ -3,15 +3,18 @@
   Auteur   : Timmy
   Rôle     : Page d'accueil avec barre de recherche.
   Créé le  : 08.05.2026
-  Modifié  : 09.05.2026
+  Modifié  : 22.05.2026, centrage de la barre de recherche dans le hero.
 -->
 <template>
   <section class="flex flex-col gap-8">
     <!-- Bandeau bleu d'accueil avec la barre de recherche au centre. -->
-    <div class="text-center py-10 bg-blue-700 text-white rounded-xl">
+    <div class="text-center py-10 px-4 bg-blue-700 text-white rounded-xl">
       <h1 class="text-3xl font-bold mb-4">Découvrez des millions de livres</h1>
       <p class="mb-6">Recherchez parmi la base d'OpenLibrary.</p>
-      <SearchBar v-model="query" @submit="onSearch" />
+      <!-- max-w-lg garde la barre à la largeur du titre, mx-auto la centre dans le hero. -->
+      <div class="max-w-lg mx-auto">
+        <SearchBar v-model="query" @submit="onSearch" />
+      </div>
     </div>
   </section>
 </template>

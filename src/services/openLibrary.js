@@ -8,22 +8,18 @@
 
 import axios from 'axios'
 
-// Une seule instance Axios partagée pour tous les appels à OpenLibrary.
-// Comme ça, on n'écrit pas l'URL de base dans chaque fonction.
+// Instance Axios partagée, pour éviter de répéter l'URL de base partout.
 const http = axios.create({
     baseURL: 'https://openlibrary.org',
-    timeout: 10000 // 10 s max : au-delà, on abandonne pour ne pas faire attendre l'utilisateur indéfiniment
+    timeout: 10000 // 10 s max, après on laisse tomber
 })
 
-// Les couvertures sont servies sur un autre domaine que l'API.
+// Les couvertures sont sur un autre domaine.
 const COVERS_BASE_URL = 'https://covers.openlibrary.org/b'
 
 /**
- * Cherche des livres qui correspondent à `query` (titre, auteur, sujet…).
- * Renvoie la réponse brute d'OpenLibrary : { docs: [...], numFound: ... }.
- *
- * @param {string} query  - Termes de recherche tapés par l'utilisateur.
- * @param {object} [opts] - Options de pagination (limit = livres par page, page = numéro de page).
+ * Recherche de livres par titre, auteur, sujet, etc.
+ * Renvoie la réponse brute : { docs: [...], numFound: ... }.
  */
 export async function searchBooks(query, { limit = 24, page = 1 } = {}) {
     const response = await http.get('/search.json', {
@@ -33,11 +29,8 @@ export async function searchBooks(query, { limit = 24, page = 1 } = {}) {
 }
 
 /**
- * Récupère les détails d'une œuvre (livre).
- * OpenLibrary appelle un livre une "work" — d'où l'endpoint /works/.
- *
- * @param {string} workId - Identifiant de l'œuvre, ex. "OL45804W" (extrait de doc.key).
- * @returns {Promise<object>} Données brutes : titre, description, sujets, couvertures, auteurs (en référence).
+ * Détails d'un livre (appelé "work" chez OpenLibrary).
+ * @param {string} workId - ex: "OL45804W"
  */
 export async function getWorkDetails(workId) {
     const response = await http.get(`/works/${workId}.json`)
@@ -45,11 +38,8 @@ export async function getWorkDetails(workId) {
 }
 
 /**
- * Récupère les infos d'un auteur (notamment son nom).
- * Nécessaire car /works/ ne renvoie que des références (`/authors/OLxxxA`) et
- * pas les noms directement. Une 2e requête par auteur est donc indispensable.
- *
- * @param {string} authorKey - Identifiant de l'auteur, ex. "OL23919A".
+ * Infos d'un auteur (surtout pour récupérer son nom).
+ * /works/ ne renvoie que des références d'auteurs, donc il faut un appel en plus.
  */
 export async function getAuthor(authorKey) {
     const response = await http.get(`/authors/${authorKey}.json`)
@@ -57,10 +47,9 @@ export async function getAuthor(authorKey) {
 }
 
 /**
- * Construit l'URL d'une couverture à partir de son ID OpenLibrary.
- * Renvoie null s'il n'y a pas d'ID - utile pour afficher un placeholder côté UI.
- *
- * Tailles disponibles : 'S' (small ~75 px), 'M' (medium ~180 px), 'L' (large ~500 px).
+ * Construit l'URL d'une couverture à partir de son ID.
+ * Renvoie null s'il n'y a pas d'ID (pour afficher un placeholder côté UI).
+ * Tailles : 'S', 'M' ou 'L'.
  */
 export function getCoverUrl(coverId, size = 'M') {
     if (!coverId) return null
