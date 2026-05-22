@@ -1,7 +1,7 @@
 <!--
-  Fichier  : src/views/SearchView.vue
+  Fichier  : src/views/DetailView.vue
   Auteur   : Timmy
-  Rôle     : Affiche les détails d’un livre sélectionné depuis la recherche.
+  Rôle     : Affiche les détails d'un livre sélectionné depuis la recherche.
   Créé le  : 08.05.2026
   Modifié  : 20.05.2026
 -->
