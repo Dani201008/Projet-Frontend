@@ -3,104 +3,8 @@
   Auteur   : Timmy (commit 1.4) puis Dani (commit 1.5 — ajout des états)
   Rôle     : Page des résultats avec gestion explicite des états.
   Créé le  : 08.05.2026
-  Modifié  : 20.05.2026
+  Modifié  : 29.05.2026
 -->
-<template>
-  <!--
-    Conteneur principal de la vue.
-    - <section> : élément sémantique approprié pour une zone de contenu
-      autonome (vs <div> générique) ; améliore la navigation par landmarks
-      pour les lecteurs d'écran.
-    - flex flex-col gap-6 : empile verticalement les blocs avec un
-      espacement régulier, quelle que soit la combinaison d'états affichés.
-  -->
-  <section class="flex flex-col gap-6">
-    <h1 class="text-2xl font-bold">Recherche</h1>
-
-    <!--
-      Barre de recherche contrôlée.
-      - v-model="searchInput" : synchronise la valeur saisie avec le state local,
-        sans déclencher de recherche à chaque frappe.
-      - @submit="onSearch" : la recherche n'est déclenchée qu'à la validation
-        explicite (Entrée ou bouton), pas au fil de la saisie.
-    -->
-    <SearchBar v-model="searchInput" @submit="onSearch" />
-
-    <!--
-      Compteur de résultats, affiché uniquement quand les trois conditions
-      sont réunies simultanément :
-        - query    : une recherche a bien été lancée
-        - results.length : l'API a retourné au moins un résultat
-        - !error   : aucune erreur n'est en cours (évite un compteur affiché
-                     en même temps que l'encart d'erreur lors d'un retry)
-    -->
-    <p v-if="query && results.length && !error" class="text-sm text-gray-500">
-      <strong>{{ results.length }}</strong> résultat(s) sur <strong>{{ total }}</strong> pour « {{ query }} »
-    </p>
-
-    <!--
-      Machine à états visuels : un seul bloc est affiché à la fois.
-      Vue évalue les conditions dans l'ordre et s'arrête au premier vrai ;
-      l'ordre est donc fonctionnellement significatif :
-
-        1. loading=true          → spinner (priorité absolue, masque tout le reste)
-        2. error≠null            → encart rouge + bouton Réessayer
-        3. query + 0 résultat    → état vide "Aucun résultat"
-        4. pas encore de query   → état vide invite "Lancez une recherche"
-        5. sinon                 → grille de résultats (cas nominal)
-
-         Ne pas réordonner ces blocs sans vérifier tous les cas limites
-         (ex. : mettre BookList avant ErrorMessage afficherait une liste
-         vide ET l'erreur en même temps lors d'un retry échoué).
-    -->
-
-    <!-- Cas 1 : chargement en cours. -->
-    <LoadingSpinner v-if="loading" message="Recherche en cours..." />
-
-    <!--
-      Cas 2 : erreur réseau ou serveur.
-      - :message="error" : transmet le message d'erreur construit dans runSearch.
-      - :can-retry="true" : toujours proposé ici car l'erreur est réseau
-        (potentiellement transitoire), pas une erreur métier définitive.
-      - @retry="runSearch(query)" : relance la dernière recherche connue
-        sans repasser par onSearch (pas de push dans l'historique).
-    -->
-    <ErrorMessage
-        v-else-if="error"
-        :message="error"
-        :can-retry="true"
-        @retry="runSearch(query)"
-    />
-
-    <!--
-      Cas 3 : recherche lancée mais aucun résultat retourné par l'API.
-      - L'interpolation dans :description reconstruit la phrase avec le
-        terme exact recherché pour aider l'utilisateur à reformuler.
-    -->
-    <EmptyState
-        v-else-if="query && !results.length"
-        icon="😕"
-        title="Aucun résultat trouvé"
-        :description="`Aucun livre ne correspond à « ${query} ».`"
-    />
-
-    <!--
-      Cas 4 : page chargée mais aucune recherche lancée (état initial).
-      - Invite l'utilisateur à agir sans afficher un écran vide.
-    -->
-    <EmptyState
-        v-else-if="!query"
-        icon="🔍"
-        title="Lancez une recherche"
-        description="Tapez un titre, un auteur ou un sujet pour commencer."
-    />
-
-    <!-- Cas 5 (nominal) : résultats disponibles → on affiche la grille. -->
-    <BookList v-else :books="results" />
-
-  </section>
-</template>
-
 <script>
 import { searchBooks } from '@/services/openLibrary.js'
 import SearchBar from '@/components/SearchBar.vue'
@@ -185,7 +89,7 @@ export default {
      *
      * Séquence d'exécution :
      *   1. On active le spinner et on réinitialise l'erreur précédente.
-     *   2. try   : appel à searchBooks ; on ne garde que les champs affichés.
+     *   2. try: appel à searchBooks ; on ne garde que les champs affichés.
      *   3. catch : on capture toute erreur réseau ou serveur et on stocke
      *              un message lisible (sans exposer les détails techniques).
      *   4. finally : le spinner s'arrête dans tous les cas — succès ou échec —
