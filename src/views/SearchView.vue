@@ -3,87 +3,92 @@
   Auteur   : Timmy
   Rôle     : Page des résultats de recherche.
   Créé le  : 08.05.2026
-  Modifié  : 10.05.2026
+  Modifié  : 29.05.2026
 -->
 <template>
   <section class="flex flex-col gap-6">
     <h1 class="text-2xl font-bold">Recherche</h1>
     <SearchBar v-model="searchInput" @submit="onSearch" />
 
-    <!-- Compteur affiché seulement quand on a au moins un résultat. -->
-    <p v-if="query && results.length" class="text-sm text-gray-500">
-      {{ results.length }} résultat(s) pour « {{ query }} »
+    <FilterBar
+        v-if="store.results.length"
+        :sort-by="store.sortBy"
+        :min-year="store.minYear"
+        @update:sort-by="store.sortBy = $event"
+        @update:min-year="store.minYear = $event"
+        @reset="resetFilters"
+    />
+
+    <p v-if="store.query && store.results.length && !store.error" class="text-sm text-gray-500">
+      <strong>{{ store.filteredResults.length }}</strong> résultat(s) affiché(s) sur <strong>{{ store.total.toLocaleString('fr-FR') }}</strong> pour « {{ store.query }} »
     </p>
 
-    <BookList v-if="results.length" :books="results" />
+    <LoadingSpinner v-if="store.loading" message="Recherche en cours..." />
+
+    <ErrorMessage
+        v-else-if="store.error"
+        :message="store.error"
+        :can-retry="true"
+        @retry="store.search(store.query)"
+    />
+
+    <EmptyState
+        v-else-if="store.query && !store.results.length"
+        icon="😕"
+        title="Aucun résultat trouvé"
+        :description="`Aucun livre ne correspond à « ${store.query} ».`"
+    />
+
+    <EmptyState
+        v-else-if="!store.query"
+        icon="🔍"
+        title="Lancez une recherche"
+        description="Tapez un titre, un auteur ou un sujet pour commencer."
+    />
+
+    <BookList v-else :books="store.filteredResults" />
   </section>
 </template>
 
 <script>
-import { searchBooks } from '@/services/openLibrary.js'
+import { useBooksStore } from '@/stores/books.js'
 import SearchBar from '@/components/SearchBar.vue'
+import FilterBar from '@/components/FilterBar.vue'
 import BookList from '@/components/BookList.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import ErrorMessage from '@/components/ErrorMessage.vue'
+import EmptyState from '@/components/EmptyState.vue'
 
 export default {
   name: 'SearchView',
-  components: { SearchBar, BookList },
-
+  components: { SearchBar, FilterBar, BookList, LoadingSpinner, ErrorMessage, EmptyState },
   data() {
     return {
-      // L'input se pré-remplit avec ?q=... si l'URL en contient déjà un (ex. lien partagé).
-      searchInput: this.$route.query.q?.toString() || '',
-      query: '',
-      results: []
+      searchInput: this.$route.query.q?.toString() || ''
     }
   },
-
+  computed: {
+    store() {
+      return useBooksStore()
+    }
+  },
   watch: {
-    /**
-     * Réagit au changement de `?q=` dans l'URL.
-     * Déclenché quand l'utilisateur valide une nouvelle recherche
-     * ou utilise les boutons Précédent / Suivant du navigateur.
-     */
     '$route.query.q'(newQuery) {
       this.searchInput = newQuery?.toString() || ''
-      if (newQuery) this.runSearch(newQuery.toString())
+      if (newQuery) this.store.search(newQuery.toString())
     }
   },
-
-  /**
-   * Au chargement de la page, si l'URL contient déjà un `?q=`,
-   * on lance la recherche tout de suite (cas d'un lien direct).
-   */
   mounted() {
     const q = this.$route.query.q?.toString()
-    if (q) this.runSearch(q)
+    if (q && q !== this.store.query) this.store.search(q)
   },
-
   methods: {
-    /**
-     * Validation depuis la barre : on met à jour l'URL.
-     * Le watcher ci-dessus déclenchera l'appel API.
-     */
     onSearch(term) {
       this.$router.push({ name: 'search', query: { q: term } })
     },
-
-    /**
-     * Lance la recherche et transforme la réponse brute en objets simples
-     * que les composants UI savent afficher.
-     */
-    async runSearch(term) {
-      this.query = term
-      const data = await searchBooks(term, { limit: 24, page: 1 })
-
-      // L'API renvoie beaucoup de champs ; on ne garde que ceux dont on a besoin.
-      // (data.docs || []) protège si la réponse n'a pas de docs (cas d'erreur).
-      this.results = (data.docs || []).map(doc => ({
-        id: (doc.key || '').replace('/works/', ''), // "/works/OL45W" → "OL45W"
-        title: doc.title || 'Titre inconnu',
-        authors: doc.author_name || [],
-        year: doc.first_publish_year || null,
-        coverId: doc.cover_i || null
-      }))
+    resetFilters() {
+      this.store.sortBy = 'relevance'
+      this.store.minYear = ''
     }
   }
 }
