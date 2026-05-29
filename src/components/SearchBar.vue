@@ -12,6 +12,8 @@
     <label for="search-input" class="sr-only">Rechercher un livre</label>
 
     <div class="flex items-center gap-2 flex-1 bg-white border border-gray-200 rounded-lg px-4">
+    <!-- text-gray-900 force le texte en foncé même quand le parent a text-white (cas du hero). -->
+    <div class="flex items-center gap-2 flex-1 bg-white border border-gray-200 rounded-lg px-4 text-gray-900">
       <span aria-hidden="true">🔍</span>
       <input
           id="search-input"

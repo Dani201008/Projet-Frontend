@@ -8,7 +8,7 @@
 <template>
   <footer class="bg-white border-t border-gray-200 px-4 py-6 mt-auto">
     <div class="max-w-7xl mx-auto text-center text-sm text-gray-500">
-      <p>© {{ currentYear }} Media Explorer — Projet scolaire</p>
+      <p>© {{ currentYear }} Media Explorer - Projet scolaire</p>
       <p class="text-xs">
         Données fournies par
         <a href="https://openlibrary.org" target="_blank" rel="noopener noreferrer" class="text-blue-700">OpenLibrary</a>

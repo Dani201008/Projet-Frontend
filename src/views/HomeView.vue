@@ -12,6 +12,13 @@
       <h1 class="text-3xl font-bold mb-4">Découvrez des millions de livres</h1>
       <p class="mb-6">Recherchez parmi la base d'OpenLibrary.</p>
       <SearchBar v-model="query" @submit="onSearch" />
+    <div class="text-center py-10 px-4 bg-blue-700 text-white rounded-xl">
+      <h1 class="text-3xl font-bold mb-4">Découvrez des millions de livres</h1>
+      <p class="mb-6">Recherchez un titre, un auteur ou un sujet et plongez dans la base de données OpenLibrary. </p>
+      <!-- max-w-lg garde la barre à la largeur du titre, mx-auto la centre dans le hero. -->
+      <div class="max-w-lg mx-auto">
+        <SearchBar v-model="query" @submit="onSearch" />
+      </div>
     </div>
   </section>
 </template>
