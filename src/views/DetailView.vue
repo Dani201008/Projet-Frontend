@@ -1,4 +1,5 @@
 <!--
+  Fichier  : src/views/SearchView.vue
   Fichier  : src/views/DetailView.vue
   Auteur   : Timmy
   Rôle     : Affiche les détails d’un livre sélectionné depuis la recherche.
