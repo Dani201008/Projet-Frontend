@@ -28,8 +28,31 @@ export const useBooksStore = defineStore('books', {
     results: [],
     loading: false,
     error: null,
-    total: 0
+    total: 0,
+    // Critère de tri courant et année minimale : filtres appliqués côté client.
+    sortBy: 'relevance',
+    minYear: ''
   }),
+  getters: {
+    /**
+     * Résultats après filtre (année min.) puis tri (titre ou année).
+     * Calculé à la volée et sur une copie : on ne touche jamais à `results`,
+     * la liste brute renvoyée par l'API.
+     */
+    filteredResults: (state) => {
+      let list = [...state.results]
+      if (state.minYear) {
+        const year = Number(state.minYear)
+        list = list.filter(book => book.year && book.year >= year)
+      }
+      if (state.sortBy === 'title') {
+        list.sort((a, b) => a.title.localeCompare(b.title))
+      } else if (state.sortBy === 'year') {
+        list.sort((a, b) => (b.year || 0) - (a.year || 0))
+      }
+      return list
+    }
+  },
   actions: {
     async search(newQuery) {
       const trimmed = (newQuery || '').trim()
