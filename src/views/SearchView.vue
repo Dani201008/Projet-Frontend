@@ -1,9 +1,9 @@
 <!--
   Fichier  : src/views/SearchView.vue
-  Auteur   : Timmy (1.4), Dani (1.5 états, 3.1 store), Timmy (3.2 tri/filtres)
+  Auteur   : Timmy (1.4), Dani (1.5 états, 3.1 store), Timmy (3.2 filtres), Dani (3.3 pagination)
   Rôle     : Page des résultats, branchée sur le store Pinia de recherche.
   Créé le  : 08.05.2026
-  Modifié  : 29.05.2026
+  Modifié  : 04.06.2026
 -->
 <template>
   <section class="flex flex-col gap-6">
@@ -23,17 +23,18 @@
       <strong>{{ store.filteredResults.length }}</strong> résultat(s) affiché(s) sur <strong>{{ store.total.toLocaleString('fr-FR') }}</strong> pour « {{ store.query }} »
     </p>
 
-    <LoadingSpinner v-if="store.loading" message="Recherche en cours..." />
+    <!-- Spinner plein écran seulement à la première recherche (pas pendant un « Charger plus »). -->
+    <LoadingSpinner v-if="store.loading && !store.results.length" message="Recherche en cours..." />
 
     <ErrorMessage
-      v-else-if="store.error"
+      v-else-if="store.error && !store.results.length"
       :message="store.error"
       :can-retry="true"
       @retry="store.search(store.query)"
     />
 
     <EmptyState
-      v-else-if="store.query && !store.results.length"
+      v-else-if="store.query && !store.loading && !store.results.length"
       icon="😕"
       title="Aucun résultat trouvé"
       :description="`Aucun livre ne correspond à « ${store.query} ».`"
@@ -46,7 +47,20 @@
       description="Tapez un titre, un auteur ou un sujet pour commencer."
     />
 
-    <BookList v-else :books="store.filteredResults" />
+    <!-- Cas normal : la grille + le bouton de pagination s'il reste des résultats à charger. -->
+    <template v-else>
+      <BookList :books="store.filteredResults" />
+      <div v-if="store.hasMore" class="flex justify-center pt-4">
+        <button
+          type="button"
+          class="border border-blue-700 text-blue-700 px-5 py-2.5 rounded-lg"
+          :disabled="store.loadingMore"
+          @click="store.loadMore()"
+        >
+          {{ store.loadingMore ? 'Chargement...' : 'Charger plus de résultats' }}
+        </button>
+      </div>
+    </template>
   </section>
 </template>
 
