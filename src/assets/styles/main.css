@@ -1,3 +1,10 @@
+/*
+  Fichier  : src/assets/styles/main.css
+  Auteur   : Samuel
+  Rôle     : Styles globaux : import de Tailwind, jetons de thème et classes utilitaires partagées.
+  Créé le  : 08.05.2026
+  Modifié  : 04.06.2026
+*/
 @import "tailwindcss";
 
 @theme {

@@ -1,3 +1,11 @@
+/**
+ * Fichier  : src/main.js
+ * Auteur   : Samuel
+ * Rôle     : Point d'entrée : crée l'app Vue, branche Pinia et le routeur, puis monte sur #app.
+ * Créé le  : 08.05.2026
+ * Modifié  : 04.06.2026
+ */
+
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
