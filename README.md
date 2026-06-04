@@ -89,6 +89,14 @@ Documentation officielle : https://openlibrary.org/developers/api
 - `/favorites` mes favoris
 - 404 pour toute autre URL
 
+## Contributeurs
+
+Projet réalisé en équipe Scrum (classe SI-CMI2a) :
+
+- **Samuel Theytaz** — Scrum Master · routage, thème, authentification, backend
+- **Dani Dordevic** — service OpenLibrary, gestion des états, stores Pinia, favoris
+- **Timmy** — barre de recherche, résultats, fiche détaillée, tri / filtres, page favoris
+
 ## Conventions
 
 Voir le fichier `conventions` à la racine du projet.
