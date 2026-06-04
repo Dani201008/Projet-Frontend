@@ -1,7 +1,7 @@
 <!--
   Fichier  : src/App.vue
-  Auteur   : Samuel (1.2), puis Timmy (4.2 — transition entre les pages)
-  Rôle     : Composant racine : header + page courante + footer.
+  Auteur   : Samuel (1.2), Timmy (4.2 — transition), Samuel (favoris liés à la session)
+  Rôle     : Composant racine : header + page courante + footer. Synchronise les favoris avec la session.
   Créé le  : 08.05.2026
   Modifié  : 04.06.2026
 -->
@@ -27,9 +27,36 @@
 <script>
 import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
+import { useAuthStore } from '@/stores/auth.js'
+import { useFavoritesStore } from '@/stores/favorites.js'
 
 export default {
   name: 'App',
-  components: { AppHeader, AppFooter }
+  components: { AppHeader, AppFooter },
+  computed: {
+    auth() {
+      return useAuthStore()
+    },
+    favorites() {
+      return useFavoritesStore()
+    }
+  },
+  watch: {
+    // Suit l'état de connexion : on charge les favoris du backend à la connexion,
+    // on vide la liste locale à la déconnexion.
+    'auth.isAuthenticated'(loggedIn) {
+      if (loggedIn) {
+        this.favorites.fetchAll()
+      } else {
+        this.favorites.clear()
+      }
+    }
+  },
+  mounted() {
+    // Session encore active au chargement (rechargement de page) : on récupère les favoris.
+    if (this.auth.isAuthenticated) {
+      this.favorites.fetchAll()
+    }
+  }
 }
 </script>
