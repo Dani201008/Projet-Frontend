@@ -1,7 +1,7 @@
 /**
  * Fichier  : src/services/openLibrary.js
  * Auteur   : Dani
- * Rôle     : Client Axios pour l'API OpenLibrary.
+ * Rôle     : Client Axios pour l'API OpenLibrary (recherche, détails, auteurs, couvertures).
  * Créé le  : 08.05.2026
  * Modifié  : 20.05.2026
  */

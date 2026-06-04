@@ -11,7 +11,7 @@
     <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
       <!-- Logo cliquable, renvoie à l'accueil. -->
       <router-link :to="{ name: 'home' }" class="flex items-center gap-2 font-bold text-lg">
-        <span class="text-2xl">📚</span>
+        <span class="text-2xl"></span>
         <span>Media Explorer</span>
       </router-link>
 

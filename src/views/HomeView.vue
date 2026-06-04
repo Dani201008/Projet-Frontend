@@ -1,22 +1,51 @@
 <!--
   Fichier  : src/views/HomeView.vue
-  Auteur   : Samuel
-  Rôle     : Page d'accueil minimale (sera enrichie au commit 1.3 par Timmy).
+  Auteur   : Timmy
+  Rôle     : Page d'accueil avec barre de recherche.
   Créé le  : 08.05.2026
-  Modifié  : 08.05.2026
+  Modifié  : 09.05.2026
 -->
 <template>
-  <section class="text-center py-12">
-    <h1 class="text-3xl font-bold mb-4">Découvrez des livres</h1>
-    <p class="mb-6">Recherchez parmi des millions d'ouvrages grâce à OpenLibrary.</p>
-    <router-link :to="{ name: 'search' }" class="bg-blue-700 text-white px-5 py-2.5 rounded-lg">
-      Aller à la recherche
-    </router-link>
+  <section class="flex flex-col gap-8">
+    <!-- Bandeau bleu d'accueil avec la barre de recherche au centre. -->
+    <div class="text-center py-10 bg-blue-700 text-white rounded-xl">
+      <h1 class="text-3xl font-bold mb-4">Découvrez des millions de livres</h1>
+      <p class="mb-6">Recherchez parmi la base d'OpenLibrary.</p>
+      <SearchBar v-model="query" @submit="onSearch" />
+    <div class="text-center py-10 px-4 bg-blue-700 text-white rounded-xl">
+      <h1 class="text-3xl font-bold mb-4">Découvrez des millions de livres</h1>
+      <p class="mb-6">Recherchez un titre, un auteur ou un sujet et plongez dans la base de données OpenLibrary. </p>
+      <!-- max-w-lg garde la barre à la largeur du titre, mx-auto la centre dans le hero. -->
+      <div class="max-w-lg mx-auto">
+        <SearchBar v-model="query" @submit="onSearch" />
+      </div>
+    </div>
   </section>
 </template>
 
 <script>
+import SearchBar from '@/components/SearchBar.vue'
+
 export default {
-  name: 'HomeView'
+  name: 'HomeView',
+  components: { SearchBar },
+
+  data() {
+    return {
+      // Saisie en cours, liée à SearchBar via v-model.
+      query: ''
+    }
+  },
+
+  methods: {
+    /**
+     * Validation de la recherche depuis l'accueil.
+     * On redirige vers /search?q=<terme> : l'URL devient partageable
+     * et le bouton précédent/suivant du navigateur fonctionne naturellement.
+     */
+    onSearch(term) {
+      this.$router.push({ name: 'search', query: { q: term } })
+    }
+  }
 }
 </script>
