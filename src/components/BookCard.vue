@@ -1,3 +1,10 @@
+<!--
+  Fichier  : src/components/BookCard.vue
+  Auteur   : Timmy
+  Rôle     : Carte d'un livre (couverture, titre, auteurs, année).
+  Créé le  : 08.05.2026
+  Modifié  : 10.05.2026
+-->
 <template>
   <!-- Carte représentant un livre -->
   <article class="relative bg-white rounded-xl overflow-hidden shadow-sm flex flex-col">
