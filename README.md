@@ -1,25 +1,29 @@
 # Media Explorer
 
-Application Vue.js de recherche de livres basée sur l'API publique OpenLibrary.
+Application Vue.js de recherche et de consultation de livres, basée sur l'API publique OpenLibrary.
 Projet réalisé dans le cadre du module FrontEnd au CPNV (4e trimestre, 2e année CFC informaticien).
 
-## Fonctionnalités prévues
+## Fonctionnalités
 
-- Recherche de livres par titre, auteur ou sujet
-- Affichage des résultats sous forme de grille
-- Tri et filtrage des résultats
-- Page de détail pour chaque livre
-- Liste de favoris sauvegardée dans le navigateur
-- Pages d'erreur et de chargement
+- Recherche par titre, auteur ou sujet
+- Résultats en grille responsive
+- Tri par pertinence, titre ou année
+- Filtre par année minimale
+- Pagination "Charger plus"
+- Fiche détaillée d'un livre (couverture, métadonnées, description, sujets)
+- Liste de favoris persistée dans le navigateur (localStorage)
+- Compteur de favoris dans la barre de navigation
+- Gestion des états chargement, erreur, vide
+- Page 404 et transitions de fondu entre les pages
 
-## Technologies utilisées
+## Technologies
 
 - Vue.js 3 (Options API)
-- Vue Router
-- Pinia
+- Vue Router 4
+- Pinia 2
 - Axios
-- Tailwind CSS
-- Vite
+- Tailwind CSS 4
+- Vite 5
 
 ## Prérequis
 
@@ -37,7 +41,7 @@ npm run dev
 
 L'application est accessible sur http://localhost:5173.
 
-Pour générer le build de production :
+Pour générer la version de production :
 
 ```bash
 npm run build
@@ -55,7 +59,7 @@ Projet-Frontend/
 │   ├── views/             une vue par route
 │   ├── router/            configuration des routes
 │   ├── services/          appels API (OpenLibrary)
-│   ├── stores/            stores Pinia
+│   ├── stores/            stores Pinia (recherche, favoris)
 │   ├── App.vue
 │   └── main.js
 ├── index.html
@@ -65,15 +69,15 @@ Projet-Frontend/
 
 ## API OpenLibrary
 
-L'application utilise l'API publique d'OpenLibrary, qui ne demande pas de clé.
+L'application utilise l'API publique d'OpenLibrary, sans clé.
 
 Endpoints utilisés :
-- `/search.json?q=...` pour la recherche
-- `/works/{id}.json` pour les détails d'un livre
-- `/authors/{id}.json` pour le nom d'un auteur
-- `https://covers.openlibrary.org/b/id/{cover_i}-M.jpg` pour les couvertures
+- `/search.json?q=...&page=...&limit=...` — recherche paginée
+- `/works/{id}.json` — détails d'un livre
+- `/authors/{id}.json` — nom d'un auteur
+- `https://covers.openlibrary.org/b/id/{cover_i}-{S|M|L}.jpg` — couverture
 
-Les appels sont regroupés dans `src/services/openLibrary.js` (via Axios).
+Les appels HTTP sont regroupés dans `src/services/openLibrary.js` (Axios).
 
 Documentation officielle : https://openlibrary.org/developers/api
 
@@ -83,7 +87,7 @@ Documentation officielle : https://openlibrary.org/developers/api
 - `/search` recherche
 - `/book/:id` détail d'un livre
 - `/favorites` mes favoris
-- 404 pour les autres URL
+- 404 pour toute autre URL
 
 ## Conventions
 
