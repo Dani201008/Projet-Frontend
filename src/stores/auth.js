@@ -3,7 +3,7 @@
  * Auteur   : Samuel
  * Rôle     : Store Pinia pour l'authentification via l'API backend (bcrypt + JWT).
  * Créé le  : 29.05.2026
- * Modifié  : 01.06.2026
+ * Modifié  : 04.06.2026
  */
 
 import { defineStore } from 'pinia'
@@ -65,6 +65,22 @@ export const useAuthStore = defineStore('auth', {
         return true
       } catch (err) {
         this.error = err.response?.data?.error || 'Impossible de se connecter. Vérifiez que le serveur est démarré.'
+        return false
+      }
+    },
+
+    /**
+     * Réinitialise le mot de passe via l'API puis connecte directement l'utilisateur.
+     * Retourne true si la réinitialisation a réussi, false sinon.
+     */
+    async resetPassword(email, password) {
+      this.error = null
+      try {
+        const { data } = await api.post('/auth/reset-password', { email, password })
+        this.setSession(data.token, data.user)
+        return true
+      } catch (err) {
+        this.error = err.response?.data?.error || 'Impossible de réinitialiser le mot de passe.'
         return false
       }
     },

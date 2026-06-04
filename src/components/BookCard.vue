@@ -1,6 +1,6 @@
 <!--
   Fichier  : src/components/BookCard.vue
-  Auteur   : Timmy (1.4), puis Dani (3.4 — bouton favori)
+  Auteur   : Timmy (1.4), puis Dani (3.4, bouton favori)
   Rôle     : Carte d'un livre (couverture, titre, auteurs, année) avec bouton favori.
   Créé le  : 08.05.2026
   Modifié  : 04.06.2026
@@ -50,6 +50,7 @@
 
 <script>
 import { useFavoritesStore } from '@/stores/favorites.js'
+import { useAuthStore } from '@/stores/auth.js'
 import { getCoverUrl } from '@/services/openLibrary.js'
 import AppIcon from '@/components/AppIcon.vue'
 
@@ -99,6 +100,11 @@ export default {
 
   methods: {
     toggleFavorite() {
+      // Action liée à un compte : on redirige vers la connexion si le visiteur n'est pas identifié.
+      if (!useAuthStore().isAuthenticated) {
+        this.$router.push({ name: 'login' })
+        return
+      }
       this.favoritesStore.toggle(this.book)
     }
   }

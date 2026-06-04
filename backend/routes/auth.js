@@ -1,9 +1,9 @@
 /**
  * Fichier  : backend/routes/auth.js
  * Auteur   : Samuel
- * Rôle     : Routes d'authentification : register, login, me.
+ * Rôle     : Routes d'authentification : register, login, reset-password, me.
  * Créé le  : 01.06.2026
- * Modifié  : 01.06.2026
+ * Modifié  : 04.06.2026
  */
 
 import { Router } from 'express'
@@ -95,6 +95,42 @@ router.post('/login', async (req, res, next) => {
         if (!valid) {
             return res.status(401).json({ error: 'Email ou mot de passe incorrect' })
         }
+
+        const user = { id: row.id, name: row.name, email: row.email }
+        const token = generateToken(user)
+
+        res.json({ token, user })
+    } catch (err) {
+        next(err)
+    }
+})
+
+/**
+ * POST /api/auth/reset-password
+ * Réinitialisation simplifiée : on retrouve le compte par email et on remplace le mot de passe.
+ * (Projet scolaire : pas de lien de vérification par email. En production, on enverrait
+ * un lien à usage unique plutôt que d'accepter un nouveau mot de passe directement.)
+ * Body   : { email, password }
+ * Retour : { token, user }
+ */
+router.post('/reset-password', async (req, res, next) => {
+    try {
+        const { email, password } = req.body
+
+        if (!email || !password) {
+            return res.status(400).json({ error: 'Email et nouveau mot de passe requis' })
+        }
+        if (password.length < 6) {
+            return res.status(400).json({ error: 'Le mot de passe doit faire au moins 6 caractères' })
+        }
+
+        const row = db.prepare('SELECT id, name, email FROM users WHERE email = ?').get(email)
+        if (!row) {
+            return res.status(404).json({ error: 'Aucun compte associé à cet email' })
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10)
+        db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(passwordHash, row.id)
 
         const user = { id: row.id, name: row.name, email: row.email }
         const token = generateToken(user)

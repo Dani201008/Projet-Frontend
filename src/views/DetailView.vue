@@ -1,6 +1,6 @@
 <!--
   Fichier  : src/views/DetailView.vue
-  Auteur   : Timmy (2.2), puis Dani (3.4 — bouton favori)
+  Auteur   : Timmy (2.2), puis Dani (3.4, bouton favori)
   Rôle     : Fiche détaillée d'un livre (couverture, auteurs, description, sujets, favori).
   Créé le  : 22.05.2026
   Modifié  : 04.06.2026
@@ -74,6 +74,7 @@
 <script>
 import { getWorkDetails, getAuthor, getCoverUrl } from '@/services/openLibrary.js'
 import { useFavoritesStore } from '@/stores/favorites.js'
+import { useAuthStore } from '@/stores/auth.js'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -158,6 +159,11 @@ export default {
     },
     toggleFavorite() {
       if (!this.book) return
+      // Action liée à un compte : on redirige vers la connexion si besoin.
+      if (!useAuthStore().isAuthenticated) {
+        this.$router.push({ name: 'login' })
+        return
+      }
       this.favoritesStore.toggle({
         id: this.book.id,
         title: this.book.title,
