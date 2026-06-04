@@ -1,49 +1,53 @@
 /**
  * Fichier  : src/router/index.js
  * Auteur   : Samuel
- * Rôle     : Configuration des routes Vue Router.
+ * Rôle     : Configuration des routes de l'application Vue Router.
+ *            Définit la navigation entre les différentes pages.
  * Créé le  : 08.05.2026
- * Modifié  : 20.05.2026
+ * Modifié  : 04.06.2026
  */
 
+// Import de Vue Router
 import { createRouter, createWebHistory } from 'vue-router'
 
 /**
- * Définition des routes de l'application.
- * Chaque composant est chargé en lazy-loading via import() dynamique :
- * Vite ne bundle pas ces vues dans le fichier principal mais crée un
- * chunk séparé chargé uniquement quand l'utilisateur visite la route.
- * Résultat : le premier chargement de l'app est plus rapide.
+ * Définition des routes de l'application
+ * Chaque route associe un chemin URL à une vue
  */
 const routes = [
+
+    // Page d'accueil
     {
         path: '/',
         name: 'home',
-        // Page d'accueil — point d'entrée de l'application.
         component: () => import('@/views/HomeView.vue')
     },
+
+    // Page de recherche de livres
     {
         path: '/search',
         name: 'search',
-        // Page de recherche avec gestion des états (spinner, erreur, vide, résultats).
-        // Le paramètre ?q= est lu directement depuis $route.query dans SearchView.
         component: () => import('@/views/SearchView.vue')
     },
+
+    // Page de détail d'un livre
+    // ":id" est un paramètre dynamique
     {
         path: '/book/:id',
         name: 'detail',
-        // Page de détail d'un livre. :id correspond à l'identifiant Open Library
-        // (ex. : 'OL45W'), extrait de doc.key dans les résultats de recherche.
-        // props: true injecte :id comme prop du composant plutôt que de forcer
-        // DetailView à lire $route.params.id lui-même — le composant reste testable
-        // indépendamment du routeur.
         component: () => import('@/views/DetailView.vue'),
-        props: true
+        props: true // permet de passer l'id comme prop au composant
     },
+
+    // Page des favoris
     {
-        // Wildcard : capture toute URL non reconnue par les routes précédentes.
-        // /:pathMatch(.*)* est la syntaxe Vue Router 4 pour "tout ce qui reste",
-        // y compris les chemins avec plusieurs segments (ex. : /foo/bar/baz).
+        path: '/favorites',
+        name: 'favorites',
+        component: () => import('@/views/FavoritesView.vue')
+    },
+
+    // Route "catch-all" pour les pages inexistantes (404)
+    {
         path: '/:pathMatch(.*)*',
         name: 'not-found',
         component: () => import('@/views/NotFoundView.vue')
@@ -51,25 +55,22 @@ const routes = [
 ]
 
 /**
- * Instance du routeur, exportée et enregistrée dans main.js via app.use(router).
- *
- * - createWebHistory() : utilise l'API History du navigateur (URLs propres
- *   sans #). Requiert que le serveur redirige toutes les URLs vers index.html
- *   pour que Vue Router prenne la main (configuration Nginx / Vite preview).
- *   Alternativement, createWebHashHistory() évite cette contrainte serveur
- *   mais produit des URLs avec # (moins propres, moins SEO-friendly).
- *
- * - scrollBehavior() : repositionne systématiquement la page en haut lors
- *   de chaque navigation. Sans ça, Vue Router conserve la position de scroll
- *   précédente, ce qui peut désorienner l'utilisateur sur la nouvelle page.
- *   Retourner { top: 0 } est l'équivalent de window.scrollTo(0, 0).
+ * Création du router Vue
+ * - history: mode HTML5 (URLs propres sans #)
+ * - routes: liste des routes définies ci-dessus
  */
 const router = createRouter({
     history: createWebHistory(),
     routes,
+
+    /**
+     * Permet de revenir en haut de page
+     * lors d'un changement de route
+     */
     scrollBehavior() {
         return { top: 0 }
     }
 })
 
+// Export du router pour l'utiliser dans l'application
 export default router
