@@ -53,16 +53,33 @@
         <p class="text-gray-500 text-sm">Gardez sous la main les livres qui vous intéressent.</p>
       </div>
     </div>
+
+    <!-- Vus récemment : historique local des dernières fiches consultées. -->
+    <div v-if="history.items.length" class="flex flex-col gap-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-bold">Vus récemment</h2>
+        <button type="button" class="text-sm text-gray-500 hover:text-gray-700" @click="history.clear()">Effacer</button>
+      </div>
+      <BookList :books="history.items" />
+    </div>
   </section>
 </template>
 
 <script>
 import SearchBar from '@/components/SearchBar.vue'
 import AppIcon from '@/components/AppIcon.vue'
+import BookList from '@/components/BookList.vue'
+import { useHistoryStore } from '@/stores/history.js'
 
 export default {
   name: 'HomeView',
-  components: { SearchBar, AppIcon },
+  components: { SearchBar, AppIcon, BookList },
+  computed: {
+    // Historique local : dernières fiches consultées (vide pour un nouveau visiteur).
+    history() {
+      return useHistoryStore()
+    }
+  },
   data() {
     return {
       // Saisie en cours, liée à SearchBar via v-model.

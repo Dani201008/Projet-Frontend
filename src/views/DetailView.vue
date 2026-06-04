@@ -32,6 +32,9 @@
         <div class="flex flex-col gap-1 text-sm text-gray-500">
           <span v-if="authorsText"><strong class="text-gray-900">Auteur(s) :</strong> {{ authorsText }}</span>
           <span v-if="book.firstPublishDate"><strong class="text-gray-900">Publié :</strong> {{ book.firstPublishDate }}</span>
+          <span v-if="book.publisher"><strong class="text-gray-900">Éditeur :</strong> {{ book.publisher }}</span>
+          <span v-if="book.pages"><strong class="text-gray-900">Pages :</strong> {{ book.pages }}</span>
+          <span v-if="book.isbn"><strong class="text-gray-900">ISBN :</strong> {{ book.isbn }}</span>
         </div>
 
         <button
@@ -59,6 +62,16 @@
         </div>
 
         <a
+          v-if="book.readUrl"
+          :href="book.readUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+        >
+          <AppIcon name="book" :size="16" /> Lire en ligne
+        </a>
+
+        <a
           :href="`https://openlibrary.org/works/${book.id}`"
           target="_blank"
           rel="noopener noreferrer"
@@ -72,9 +85,10 @@
 </template>
 
 <script>
-import { getWorkDetails, getAuthor, getCoverUrl } from '@/services/openLibrary.js'
+import { getWorkDetails, getAuthor, getCoverUrl, getWorkEditions } from '@/services/openLibrary.js'
 import { useFavoritesStore } from '@/stores/favorites.js'
 import { useAuthStore } from '@/stores/auth.js'
+import { useHistoryStore } from '@/stores/history.js'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -130,7 +144,11 @@ export default {
       this.loading = true
       this.error = null
       try {
-        const data = await getWorkDetails(this.id)
+        // Œuvre et éditions en parallèle (les éditions portent pages / éditeur / ISBN / lecture en ligne).
+        const [data, editionsData] = await Promise.all([
+          getWorkDetails(this.id),
+          getWorkEditions(this.id).catch(() => ({ entries: [] }))
+        ])
         let authorNames = []
         if (data.authors?.length) {
           const authorKeys = data.authors
@@ -141,6 +159,12 @@ export default {
           )
           authorNames = results.filter(Boolean).map(a => a.name)
         }
+        const editions = editionsData.entries || []
+        const withPages = editions.find(e => e.number_of_pages)
+        const withPublisher = editions.find(e => e.publishers?.length)
+        const withIsbn = editions.find(e => e.isbn_13?.length || e.isbn_10?.length)
+        const readable = editions.find(e => e.ocaid)
+
         this.book = {
           id: this.id,
           title: data.title || 'Titre inconnu',
@@ -148,8 +172,21 @@ export default {
           subjects: data.subjects || [],
           coverId: data.covers?.[0] || null,
           authors: authorNames,
-          firstPublishDate: data.first_publish_date || null
+          firstPublishDate: data.first_publish_date || null,
+          pages: withPages?.number_of_pages || null,
+          publisher: withPublisher?.publishers?.[0] || null,
+          isbn: withIsbn?.isbn_13?.[0] || withIsbn?.isbn_10?.[0] || null,
+          readUrl: readable ? `https://archive.org/details/${readable.ocaid}` : null
         }
+
+        // Mémorise la consultation dans l'historique « Vus récemment ».
+        useHistoryStore().add({
+          id: this.book.id,
+          title: this.book.title,
+          authors: this.book.authors,
+          coverId: this.book.coverId,
+          year: this.extractYear(this.book.firstPublishDate)
+        })
       } catch (err) {
         console.error('Erreur détails :', err)
         this.error = 'Impossible de charger les détails de ce livre.'

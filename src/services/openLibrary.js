@@ -25,10 +25,12 @@ const COVERS_BASE_URL = 'https://covers.openlibrary.org/b'
  * @param {string} query  - Termes de recherche tapés par l'utilisateur.
  * @param {object} [opts] - Options de pagination (limit = livres par page, page = numéro de page).
  */
-export async function searchBooks(query, { limit = 24, page = 1 } = {}) {
-  const response = await http.get('/search.json', {
-    params: { q: query, limit, page }
-  })
+export async function searchBooks(query, { limit = 24, page = 1, sort } = {}) {
+  // `sort` (ex. 'new', 'old') est transmis à OpenLibrary : le tri porte ainsi sur tout
+  // le résultat, pas seulement sur la page déjà chargée.
+  const params = { q: query, limit, page }
+  if (sort) params.sort = sort
+  const response = await http.get('/search.json', { params })
   return response.data
 }
 
@@ -47,6 +49,17 @@ export async function getWorkDetails(workId) {
  */
 export async function getAuthor(authorKey) {
   const response = await http.get(`/authors/${authorKey}.json`)
+  return response.data
+}
+
+/**
+ * Récupère les éditions d'une œuvre (pages, éditeur, ISBN, lecture en ligne).
+ * Ces infos sont au niveau de l'édition, pas de l'œuvre, d'où cet appel séparé.
+ */
+export async function getWorkEditions(workId) {
+  const response = await http.get(`/works/${workId}/editions.json`, {
+    params: { limit: 50 }
+  })
   return response.data
 }
 

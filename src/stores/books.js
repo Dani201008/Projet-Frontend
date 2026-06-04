@@ -1,7 +1,7 @@
 /**
  * Fichier  : src/stores/books.js
  * Auteur   : Dani
- * Rôle     : Store Pinia de la recherche (requête, résultats, tri/filtre, pagination).
+ * Rôle     : Store Pinia de la recherche (requête, tri et filtre côté serveur, pagination).
  * Créé le  : 29.05.2026
  * Modifié  : 04.06.2026
  */
@@ -31,36 +31,33 @@ export const useBooksStore = defineStore('books', {
     error: null,
     total: 0,
     currentPage: 1,
-    // Critère de tri courant et année minimale : filtres appliqués côté client.
-    sortBy: 'relevance',
+    // Tri et filtre appliqués côté serveur : ils portent sur tout le résultat, pas seulement la page.
+    sort: 'relevance', // 'relevance' | 'new' | 'old'
     minYear: ''
   }),
+
   getters: {
     // Vrai tant qu'on a chargé moins de livres que le total annoncé par l'API.
-    hasMore: (state) => state.results.length < state.total,
-    /**
-     * Résultats après filtre (année min.) puis tri (titre ou année).
-     * Calculé à la volée et sur une copie : on ne touche jamais à `results`,
-     * la liste brute renvoyée par l'API.
-     */
-    filteredResults: (state) => {
-      let list = [...state.results]
-      if (state.minYear) {
-        const year = Number(state.minYear)
-        list = list.filter(book => book.year && book.year >= year)
-      }
-      if (state.sortBy === 'title') {
-        list.sort((a, b) => a.title.localeCompare(b.title))
-      } else if (state.sortBy === 'year') {
-        list.sort((a, b) => (b.year || 0) - (a.year || 0))
-      }
-      return list
-    }
+    hasMore: (state) => state.results.length < state.total
   },
+
   actions: {
+    // Requête envoyée à l'API : texte + filtre « année minimale » en syntaxe OpenLibrary.
+    buildQuery() {
+      let q = this.query
+      if (this.minYear) {
+        q += ` first_publish_year:[${Number(this.minYear)} TO *]`
+      }
+      return q
+    },
+
+    // Traduit notre tri en paramètre OpenLibrary (la pertinence est le tri par défaut, sans paramètre).
+    sortParam() {
+      return this.sort === 'new' || this.sort === 'old' ? this.sort : undefined
+    },
+
     async search(newQuery) {
       const trimmed = (newQuery || '').trim()
-      // Recherche vide : on repart d'un état propre plutôt que d'appeler l'API pour rien.
       if (!trimmed) {
         this.reset()
         return
@@ -70,7 +67,7 @@ export const useBooksStore = defineStore('books', {
       this.query = trimmed
       this.currentPage = 1
       try {
-        const data = await searchBooks(trimmed, { limit: RESULTS_PER_PAGE, page: 1 })
+        const data = await searchBooks(this.buildQuery(), { limit: RESULTS_PER_PAGE, page: 1, sort: this.sortParam() })
         this.results = (data.docs || []).map(mapBook)
         this.total = data.numFound || 0
       } catch (err) {
@@ -82,19 +79,15 @@ export const useBooksStore = defineStore('books', {
         this.loading = false
       }
     },
-    /**
-     * Charge la page suivante et l'ajoute aux résultats déjà affichés
-     * (pagination « Charger plus », sans remplacer la liste courante).
-     */
+
     async loadMore() {
       if (this.loadingMore || this.loading || !this.hasMore) return
       this.loadingMore = true
       this.error = null
       try {
         const nextPage = this.currentPage + 1
-        const data = await searchBooks(this.query, { limit: RESULTS_PER_PAGE, page: nextPage })
-        const newBooks = (data.docs || []).map(mapBook)
-        this.results = [...this.results, ...newBooks]
+        const data = await searchBooks(this.buildQuery(), { limit: RESULTS_PER_PAGE, page: nextPage, sort: this.sortParam() })
+        this.results = [...this.results, ...(data.docs || []).map(mapBook)]
         this.currentPage = nextPage
       } catch (err) {
         console.error('Erreur chargement supplémentaire :', err)
@@ -103,14 +96,15 @@ export const useBooksStore = defineStore('books', {
         this.loadingMore = false
       }
     },
-    // Remet tout l'état de recherche à zéro (requête, résultats, filtres, pagination).
+
+    // Remet tout l'état de recherche à zéro.
     reset() {
       this.query = ''
       this.results = []
       this.error = null
       this.total = 0
       this.currentPage = 1
-      this.sortBy = 'relevance'
+      this.sort = 'relevance'
       this.minYear = ''
     }
   }
