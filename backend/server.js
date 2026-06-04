@@ -3,7 +3,7 @@
  * Auteur   : Samuel
  * Rôle     : Point d'entrée du backend Express : middlewares, routes, listen.
  * Créé le  : 01.06.2026
- * Modifié  : 01.06.2026
+ * Modifié  : 04.06.2026
  */
 
 import 'dotenv/config'
@@ -15,9 +15,10 @@ import favoritesRoutes from './routes/favorites.js'
 const app = express()
 const PORT = process.env.PORT || 3001
 
-// Le front Vite tourne sur 5173 (ou 5174 en port de secours).
+// Autorise le front Vite quel que soit son port local : Vite glisse sur 5174, 5175…
+// si 5173 est déjà pris, et un port en dur bloquerait alors les requêtes (erreur CORS).
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174'],
+    origin: /^http:\/\/(localhost|127\.0\.0\.1):\d+$/,
     credentials: true
 }))
 

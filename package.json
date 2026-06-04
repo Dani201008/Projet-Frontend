@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview --port 4173"
+    "preview": "vite preview --port 4173",
+    "backend": "node backend/server.js"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.0",
