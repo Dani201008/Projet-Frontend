@@ -1,9 +1,9 @@
 <!--
   Fichier  : src/components/SearchBar.vue
-  Auteur   : Timmy
+  Auteur   : Timmy (création), Samuel (correctif contraste)
   Rôle     : Barre de recherche réutilisable (pattern v-model).
   Créé le  : 08.05.2026
-  Modifié  : 08.05.2026
+  Modifié  : 04.06.2026
 -->
 <template>
   <!-- @submit.prevent : on intercepte la touche Entrée et on évite le rechargement de page. -->
@@ -11,7 +11,8 @@
     <!-- Label invisible mais lu par les lecteurs d'écran (accessibilité). -->
     <label for="search-input" class="sr-only">Rechercher un livre</label>
 
-    <div class="flex items-center gap-2 flex-1 bg-white border border-gray-200 rounded-lg px-4">
+    <!-- text-gray-900 : garde le texte saisi en foncé même quand le parent est en text-white (hero d'accueil). -->
+    <div class="flex items-center gap-2 flex-1 bg-white border border-gray-200 rounded-lg px-4 text-gray-900">
       <span aria-hidden="true">🔍</span>
       <input
         id="search-input"
