@@ -1,6 +1,6 @@
 <!--
   Fichier  : src/App.vue
-  Auteur   : Samuel (1.2), Timmy (4.2 — transition), Samuel (favoris liés à la session)
+  Auteur   : Samuel (1.2), Timmy (4.2, transition), Samuel (favoris liés à la session)
   Rôle     : Composant racine : header + page courante + footer. Synchronise les favoris avec la session.
   Créé le  : 08.05.2026
   Modifié  : 04.06.2026

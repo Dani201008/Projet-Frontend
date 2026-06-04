@@ -41,6 +41,13 @@
             />
           </div>
 
+          <!-- Lien vers la réinitialisation du mot de passe. -->
+          <div class="-mt-2 text-right">
+            <router-link :to="{ name: 'forgot-password' }" class="text-sm text-blue-700 hover:underline">
+              Mot de passe oublié ?
+            </router-link>
+          </div>
+
           <!-- Message d'erreur éventuel -->
           <p v-if="auth.error" role="alert" class="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
             {{ auth.error }}

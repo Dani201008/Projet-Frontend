@@ -1,14 +1,14 @@
 <!--
   Fichier  : src/views/DetailView.vue
-  Auteur   : Timmy (2.2), puis Dani (3.4 — bouton favori)
+  Auteur   : Timmy (2.2), puis Dani (3.4, bouton favori)
   Rôle     : Fiche détaillée d'un livre (couverture, auteurs, description, sujets, favori).
   Créé le  : 22.05.2026
   Modifié  : 04.06.2026
 -->
 <template>
   <section class="flex flex-col gap-6">
-    <button type="button" class="self-start border border-blue-700 text-blue-700 px-4 py-2 rounded-lg" @click="goBack">
-      ← Retour
+    <button type="button" class="self-start inline-flex items-center gap-1.5 border border-blue-700 text-blue-700 px-4 py-2 rounded-lg" @click="goBack">
+      <AppIcon name="arrow-left" :size="18" /> Retour
     </button>
 
     <LoadingSpinner v-if="loading" message="Chargement des détails..." />
@@ -23,24 +23,25 @@
     <article v-else-if="book" class="grid gap-8 bg-white p-8 rounded-xl shadow-sm md:grid-cols-[280px_1fr]">
       <div class="aspect-[2/3] bg-blue-50 rounded-lg overflow-hidden flex items-center justify-center">
         <img v-if="coverUrl" :src="coverUrl" :alt="`Couverture de ${book.title}`" class="w-full h-full object-cover" />
-        <div v-else class="text-7xl text-blue-700/50">📖</div>
+        <AppIcon v-else name="book" :size="72" :stroke-width="1.3" class="text-primary/40" />
       </div>
 
       <div class="flex flex-col gap-4">
         <h1 class="text-2xl font-bold">{{ book.title }}</h1>
 
         <div class="flex flex-col gap-1 text-sm text-gray-500">
-          <span v-if="authorsText"><strong class="text-gray-900">✍️ Auteur(s) :</strong> {{ authorsText }}</span>
-          <span v-if="book.firstPublishDate"><strong class="text-gray-900">📅 Publié :</strong> {{ book.firstPublishDate }}</span>
+          <span v-if="authorsText"><strong class="text-gray-900">Auteur(s) :</strong> {{ authorsText }}</span>
+          <span v-if="book.firstPublishDate"><strong class="text-gray-900">Publié :</strong> {{ book.firstPublishDate }}</span>
         </div>
 
         <button
           type="button"
-          class="self-start px-5 py-2.5 rounded-lg font-medium text-white"
-          :class="isFav ? 'bg-red-600' : 'bg-blue-700'"
+          class="self-start inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-white transition"
+          :class="isFav ? 'bg-rose-600 hover:bg-rose-700' : 'bg-blue-700 hover:bg-blue-800'"
           @click="toggleFavorite"
         >
-          {{ isFav ? '♥ Retirer des favoris' : '♡ Ajouter aux favoris' }}
+          <AppIcon name="heart" :filled="isFav" :size="18" />
+          {{ isFav ? 'Retirer des favoris' : 'Ajouter aux favoris' }}
         </button>
 
         <div v-if="description" class="flex flex-col gap-2">
@@ -61,9 +62,9 @@
           :href="`https://openlibrary.org/works/${book.id}`"
           target="_blank"
           rel="noopener noreferrer"
-          class="font-medium text-blue-700"
+          class="inline-flex items-center gap-1 self-start font-medium text-blue-700"
         >
-          Voir sur OpenLibrary ↗
+          Voir sur OpenLibrary <AppIcon name="external" :size="15" />
         </a>
       </div>
     </article>
@@ -73,12 +74,14 @@
 <script>
 import { getWorkDetails, getAuthor, getCoverUrl } from '@/services/openLibrary.js'
 import { useFavoritesStore } from '@/stores/favorites.js'
+import { useAuthStore } from '@/stores/auth.js'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
+import AppIcon from '@/components/AppIcon.vue'
 
 export default {
   name: 'DetailView',
-  components: { LoadingSpinner, ErrorMessage },
+  components: { LoadingSpinner, ErrorMessage, AppIcon },
   props: {
     id: { type: String, required: true }
   },
@@ -156,6 +159,11 @@ export default {
     },
     toggleFavorite() {
       if (!this.book) return
+      // Action liée à un compte : on redirige vers la connexion si besoin.
+      if (!useAuthStore().isAuthenticated) {
+        this.$router.push({ name: 'login' })
+        return
+      }
       this.favoritesStore.toggle({
         id: this.book.id,
         title: this.book.title,

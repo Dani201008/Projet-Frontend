@@ -8,7 +8,7 @@
 <template>
   <!-- role="alert" : les lecteurs d'écran lisent immédiatement le message. -->
   <div role="alert" class="flex gap-4 p-6 bg-red-50 border border-red-300 rounded-lg text-red-900">
-    <span class="text-2xl">⚠️</span>
+    <AppIcon name="alert" :size="22" :stroke-width="2" class="shrink-0 mt-0.5 text-red-600" />
     <div class="flex-1 flex flex-col gap-2 items-start">
       <p>{{ message }}</p>
       <!-- Bouton « Réessayer » affiché seulement si le parent l'a demandé via la prop canRetry. -->
@@ -20,8 +20,11 @@
 </template>
 
 <script>
+import AppIcon from './AppIcon.vue'
+
 export default {
   name: 'ErrorMessage',
+  components: { AppIcon },
   props: {
     message: { type: String, required: true },
     canRetry: { type: Boolean, default: false }
