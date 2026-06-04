@@ -1,9 +1,9 @@
 <!--
   Fichier  : src/views/DetailView.vue
-  Auteur   : Timmy
-  Rôle     : Fiche détaillée d'un livre (couverture, auteurs, description, sujets).
+  Auteur   : Timmy (2.2), puis Dani (3.4 — bouton favori)
+  Rôle     : Fiche détaillée d'un livre (couverture, auteurs, description, sujets, favori).
   Créé le  : 22.05.2026
-  Modifié  : 22.05.2026
+  Modifié  : 04.06.2026
 -->
 <template>
   <section class="flex flex-col gap-6">
@@ -34,6 +34,15 @@
           <span v-if="book.firstPublishDate"><strong class="text-gray-900">📅 Publié :</strong> {{ book.firstPublishDate }}</span>
         </div>
 
+        <button
+          type="button"
+          class="self-start px-5 py-2.5 rounded-lg font-medium text-white"
+          :class="isFav ? 'bg-red-600' : 'bg-blue-700'"
+          @click="toggleFavorite"
+        >
+          {{ isFav ? '♥ Retirer des favoris' : '♡ Ajouter aux favoris' }}
+        </button>
+
         <div v-if="description" class="flex flex-col gap-2">
           <h2 class="text-lg font-semibold">Description</h2>
           <p class="leading-relaxed whitespace-pre-line">{{ description }}</p>
@@ -63,6 +72,7 @@
 
 <script>
 import { getWorkDetails, getAuthor, getCoverUrl } from '@/services/openLibrary.js'
+import { useFavoritesStore } from '@/stores/favorites.js'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
 
@@ -80,8 +90,14 @@ export default {
     }
   },
   computed: {
+    favoritesStore() {
+      return useFavoritesStore()
+    },
     coverUrl() {
       return getCoverUrl(this.book?.coverId, 'L')
+    },
+    isFav() {
+      return this.book && this.favoritesStore.isFavorite(this.book.id)
     },
     authorsText() {
       if (!this.book?.authors?.length) return ''
@@ -137,6 +153,21 @@ export default {
       } finally {
         this.loading = false
       }
+    },
+    toggleFavorite() {
+      if (!this.book) return
+      this.favoritesStore.toggle({
+        id: this.book.id,
+        title: this.book.title,
+        authors: this.book.authors,
+        coverId: this.book.coverId,
+        year: this.extractYear(this.book.firstPublishDate)
+      })
+    },
+    extractYear(dateString) {
+      if (!dateString) return null
+      const match = String(dateString).match(/\d{4}/)
+      return match ? Number(match[0]) : null
     },
     goBack() {
       if (window.history.length > 1) {

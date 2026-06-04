@@ -1,12 +1,12 @@
 <!--
   Fichier  : src/components/BookCard.vue
-  Auteur   : Timmy
-  Rôle     : Carte d'un livre (couverture, titre, auteurs, année).
+  Auteur   : Timmy (1.4), puis Dani (3.4 — bouton favori)
+  Rôle     : Carte d'un livre (couverture, titre, auteurs, année) avec bouton favori.
   Créé le  : 08.05.2026
-  Modifié  : 08.05.2026
+  Modifié  : 04.06.2026
 -->
 <template>
-  <article class="bg-white rounded-xl overflow-hidden shadow-sm flex flex-col">
+  <article class="relative bg-white rounded-xl overflow-hidden shadow-sm flex flex-col">
     <!-- Toute la carte est cliquable : un router-link englobe la couverture et les infos. -->
     <router-link
       :to="{ name: 'detail', params: { id: book.id } }"
@@ -31,10 +31,25 @@
         <p v-if="book.year" class="text-sm text-gray-500">📅 {{ book.year }}</p>
       </div>
     </router-link>
+
+    <!--
+      Bouton favori superposé en haut à droite de la carte.
+      @click.stop empêche le clic de déclencher aussi le router-link parent.
+    -->
+    <button
+      type="button"
+      class="absolute top-2 right-2 w-9 h-9 rounded-full flex items-center justify-center text-xl shadow-sm"
+      :class="isFav ? 'bg-red-600 text-white' : 'bg-white/90 text-red-600'"
+      :aria-label="isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+      @click.stop="toggleFavorite"
+    >
+      {{ isFav ? '♥' : '♡' }}
+    </button>
   </article>
 </template>
 
 <script>
+import { useFavoritesStore } from '@/stores/favorites.js'
 import { getCoverUrl } from '@/services/openLibrary.js'
 
 export default {
@@ -46,12 +61,21 @@ export default {
   },
 
   computed: {
+    favoritesStore() {
+      return useFavoritesStore()
+    },
+
     /**
      * URL de la couverture en taille moyenne ('M').
      * Renvoie null si pas de couverture → le placeholder s'affiche à la place.
      */
     coverUrl() {
       return getCoverUrl(this.book.coverId, 'M')
+    },
+
+    // Vrai si ce livre figure déjà dans les favoris.
+    isFav() {
+      return this.favoritesStore.isFavorite(this.book.id)
     },
 
     /**
@@ -68,6 +92,12 @@ export default {
       const visible = this.book.authors.slice(0, 2).join(', ')
       const extra = this.book.authors.length - 2
       return extra > 0 ? `${visible} +${extra}` : visible
+    }
+  },
+
+  methods: {
+    toggleFavorite() {
+      this.favoritesStore.toggle(this.book)
     }
   }
 }
