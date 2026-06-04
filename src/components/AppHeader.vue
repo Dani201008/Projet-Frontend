@@ -16,7 +16,7 @@
         @click="closeMenu"
       >
         <span class="text-2xl">📚</span>
-        <span>Media Explorer</span>
+        <span class="font-serif text-xl tracking-tight">Media Explorer</span>
       </router-link>
 
       <!--
