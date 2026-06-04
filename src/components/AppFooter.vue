@@ -15,7 +15,7 @@
         <span class="font-serif text-lg">Media Explorer</span>
       </div>
 
-      <p class="text-sm text-white/70">© {{ currentYear }} — Projet scolaire CPNV</p>
+      <p class="text-sm text-white/70">© {{ currentYear }} · Projet scolaire CPNV</p>
 
       <!-- Crédit de la source de données. -->
       <a

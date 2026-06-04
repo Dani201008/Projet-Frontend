@@ -13,7 +13,7 @@
 
     <!-- text-gray-900 : garde le texte saisi en foncé même quand le parent est en text-white (hero d'accueil). -->
     <div class="flex items-center gap-2 flex-1 bg-white border border-gray-200 rounded-lg px-4 text-gray-900">
-      <span aria-hidden="true">🔍</span>
+      <AppIcon name="search" :size="18" class="text-gray-400 shrink-0" />
       <input
         id="search-input"
         v-model="localQuery"
@@ -22,8 +22,10 @@
         autocomplete="off"
         class="flex-1 border-0 outline-none bg-transparent py-3"
       />
-      <!-- Croix « × » : visible seulement quand on a tapé, vide le champ d'un clic. -->
-      <button v-if="localQuery" type="button" class="text-2xl text-gray-400" @click="clear">×</button>
+      <!-- Bouton d'effacement : visible seulement quand on a tapé, vide le champ d'un clic. -->
+      <button v-if="localQuery" type="button" class="text-gray-400 hover:text-gray-600 shrink-0" aria-label="Effacer la recherche" @click="clear">
+        <AppIcon name="x" :size="18" />
+      </button>
     </div>
 
     <!-- Désactivé tant que la saisie est vide ou ne contient que des espaces. -->
@@ -34,8 +36,11 @@
 </template>
 
 <script>
+import AppIcon from '@/components/AppIcon.vue'
+
 export default {
   name: 'SearchBar',
+  components: { AppIcon },
 
   // Valeurs reçues du parent.
   props: {

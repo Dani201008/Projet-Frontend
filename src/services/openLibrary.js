@@ -52,7 +52,7 @@ export async function getAuthor(authorKey) {
 
 /**
  * Construit l'URL d'une couverture à partir de son ID OpenLibrary.
- * Renvoie null s'il n'y a pas d'ID — utile pour afficher un placeholder côté UI.
+ * Renvoie null s'il n'y a pas d'ID, utile pour afficher un placeholder côté UI.
  *
  * Tailles disponibles : 'S' (small ~75 px), 'M' (medium ~180 px), 'L' (large ~500 px).
  */
