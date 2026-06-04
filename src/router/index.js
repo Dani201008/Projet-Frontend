@@ -1,29 +1,30 @@
 /**
  * Fichier  : src/router/index.js
  * Auteur   : Samuel
- * Rôle     : Configuration des routes Vue Router (+ titre d'onglet par page).
+ * Rôle     : Routes Vue Router, titres d'onglet et garde d'authentification.
  * Créé le  : 08.05.2026
  * Modifié  : 04.06.2026
  */
 
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth.js'
 
-// Liste des routes de l'application.
-// Les composants sont chargés en lazy (via `() => import(...)`) :
-// le code de chaque page n'est téléchargé que quand on y va, ça accélère le premier chargement.
-// meta.title : libellé repris dans le titre de l'onglet du navigateur.
+// Liste des routes de l'application (composants chargés en lazy).
+// meta.title        : libellé repris dans le titre de l'onglet du navigateur.
+// meta.requiresAuth : page accessible seulement connecté (sinon redirection vers /login).
+// meta.guestOnly    : page réservée aux visiteurs non connectés (connexion / inscription).
 const routes = [
   {
     path: '/',
     name: 'home',
     component: () => import('@/views/HomeView.vue'),
-    meta: { title: 'Accueil' }
+    meta: { title: 'Accueil', requiresAuth: true }
   },
   {
     path: '/search',
     name: 'search',
     component: () => import('@/views/SearchView.vue'),
-    meta: { title: 'Recherche' }
+    meta: { title: 'Recherche', requiresAuth: true }
   },
   {
     // Fiche détaillée d'un livre. `props: true` passe le `:id` de l'URL directement
@@ -32,13 +33,25 @@ const routes = [
     name: 'detail',
     component: () => import('@/views/DetailView.vue'),
     props: true,
-    meta: { title: 'Détails du livre' }
+    meta: { title: 'Détails du livre', requiresAuth: true }
   },
   {
     path: '/favorites',
     name: 'favorites',
     component: () => import('@/views/FavoritesView.vue'),
-    meta: { title: 'Mes favoris' }
+    meta: { title: 'Mes favoris', requiresAuth: true }
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import('@/views/LoginView.vue'),
+    meta: { title: 'Connexion', guestOnly: true }
+  },
+  {
+    path: '/register',
+    name: 'register',
+    component: () => import('@/views/RegisterView.vue'),
+    meta: { title: 'Inscription', guestOnly: true }
   },
   {
     // Route attrape-tout : toute URL non listée plus haut tombe ici.
@@ -57,6 +70,19 @@ const router = createRouter({
   // C'est ce que l'utilisateur attend après un clic sur un lien.
   scrollBehavior() {
     return { top: 0 }
+  }
+})
+
+// Garde globale : bloque les pages protégées si on n'est pas connecté,
+// et renvoie à l'accueil ceux qui sont déjà connectés mais visitent /login ou /register.
+router.beforeEach((to) => {
+  const auth = useAuthStore()
+
+  if (to.meta.requiresAuth && !auth.isAuthenticated) {
+    return { name: 'login' }
+  }
+  if (to.meta.guestOnly && auth.isAuthenticated) {
+    return { name: 'home' }
   }
 })
 
