@@ -1,31 +1,85 @@
 <!--
   Fichier  : src/components/AppHeader.vue
-  Auteur   : Samuel
-  Rôle     : Barre de navigation sticky (logo + liens).
+  Auteur   : Samuel (1.2), puis Timmy (3.5 — menu mobile + lien Favoris avec badge)
+  Rôle     : Barre de navigation sticky (logo, liens, badge favoris, menu mobile).
   Créé le  : 08.05.2026
-  Modifié  : 08.05.2026
+  Modifié  : 04.06.2026
 -->
 <template>
   <!-- sticky top-0 : reste collé en haut quand on scrolle. -->
   <header class="sticky top-0 z-10 bg-blue-700 text-white shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+    <div class="relative max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
       <!-- Logo cliquable, renvoie à l'accueil. -->
-      <router-link :to="{ name: 'home' }" class="flex items-center gap-2 font-bold text-lg">
+      <router-link
+        :to="{ name: 'home' }"
+        class="flex items-center gap-2 font-bold text-lg"
+        @click="closeMenu"
+      >
         <span class="text-2xl">📚</span>
         <span>Media Explorer</span>
       </router-link>
 
-      <!-- Liens de navigation. Pour l'instant 2 ; le lien Favoris sera ajouté au Sprint 3. -->
-      <nav class="flex items-center gap-2">
-        <router-link :to="{ name: 'home' }" class="px-3 py-2 rounded-md hover:bg-white/20">Accueil</router-link>
-        <router-link :to="{ name: 'search' }" class="px-3 py-2 rounded-md hover:bg-white/20">Recherche</router-link>
+      <!-- Bouton « hamburger » : visible seulement sur mobile (md:hidden). -->
+      <button
+        type="button"
+        class="md:hidden flex flex-col gap-1 p-2"
+        :aria-expanded="menuOpen"
+        aria-label="Ouvrir le menu"
+        @click="toggleMenu"
+      >
+        <span class="block w-6 h-0.5 bg-white"></span>
+        <span class="block w-6 h-0.5 bg-white"></span>
+        <span class="block w-6 h-0.5 bg-white"></span>
+      </button>
+
+      <!-- Menu déroulant sur mobile, barre horizontale classique dès md. -->
+      <nav
+        class="absolute top-16 left-0 right-0 bg-blue-700 shadow-md flex-col p-2 md:static md:shadow-none md:flex md:flex-row md:items-center md:gap-2 md:p-0"
+        :class="menuOpen ? 'flex' : 'hidden md:flex'"
+      >
+        <router-link :to="{ name: 'home' }" class="px-4 py-3 md:py-2 rounded-md hover:bg-white/20" active-class="bg-white/20" @click="closeMenu">Accueil</router-link>
+        <router-link :to="{ name: 'search' }" class="px-4 py-3 md:py-2 rounded-md hover:bg-white/20" active-class="bg-white/20" @click="closeMenu">Recherche</router-link>
+        <router-link :to="{ name: 'favorites' }" class="px-4 py-3 md:py-2 rounded-md hover:bg-white/20 inline-flex items-center gap-1" active-class="bg-white/20" @click="closeMenu">
+          Favoris
+          <!-- Badge rouge : nombre de favoris, masqué quand il n'y en a aucun. -->
+          <span
+            v-if="favoritesCount"
+            class="inline-block min-w-5 h-5 px-1.5 text-xs font-semibold leading-5 text-center bg-red-600 rounded-full"
+          >
+            {{ favoritesCount }}
+          </span>
+        </router-link>
       </nav>
     </div>
   </header>
 </template>
 
 <script>
+import { useFavoritesStore } from '@/stores/favorites.js'
+
 export default {
-  name: 'AppHeader'
+  name: 'AppHeader',
+  data() {
+    return {
+      // Ouverture du menu déroulant sur mobile.
+      menuOpen: false
+    }
+  },
+  computed: {
+    favoritesStore() {
+      return useFavoritesStore()
+    },
+    favoritesCount() {
+      return this.favoritesStore.count
+    }
+  },
+  methods: {
+    toggleMenu() {
+      this.menuOpen = !this.menuOpen
+    },
+    closeMenu() {
+      this.menuOpen = false
+    }
+  }
 }
 </script>

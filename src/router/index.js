@@ -3,7 +3,7 @@
  * Auteur   : Samuel
  * Rôle     : Configuration des routes Vue Router.
  * Créé le  : 08.05.2026
- * Modifié  : 20.05.2026
+ * Modifié  : 04.06.2026
  */
 
 import { createRouter, createWebHistory } from 'vue-router'
@@ -29,6 +29,11 @@ const routes = [
     name: 'detail',
     component: () => import('@/views/DetailView.vue'),
     props: true
+  },
+  {
+    path: '/favorites',
+    name: 'favorites',
+    component: () => import('@/views/FavoritesView.vue')
   },
   {
     // Route attrape-tout : toute URL non listée plus haut tombe ici.
