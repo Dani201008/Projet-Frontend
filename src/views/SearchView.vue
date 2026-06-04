@@ -35,14 +35,14 @@
 
     <EmptyState
       v-else-if="store.query && !store.loading && !store.results.length"
-      icon="😕"
+      icon="search-x"
       title="Aucun résultat trouvé"
       :description="`Aucun livre ne correspond à « ${store.query} ».`"
     />
 
     <EmptyState
       v-else-if="!store.query"
-      icon="🔍"
+      icon="search"
       title="Lancez une recherche"
       description="Tapez un titre, un auteur ou un sujet pour commencer."
     />

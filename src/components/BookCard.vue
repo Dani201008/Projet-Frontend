@@ -6,7 +6,7 @@
   Modifié  : 04.06.2026
 -->
 <template>
-  <article class="relative bg-white rounded-xl overflow-hidden shadow-sm flex flex-col">
+  <article class="relative bg-white rounded-xl overflow-hidden shadow-sm flex flex-col transition duration-200 hover:-translate-y-1 hover:shadow-md">
     <!-- Toute la carte est cliquable : un router-link englobe la couverture et les infos. -->
     <router-link
       :to="{ name: 'detail', params: { id: book.id } }"
@@ -22,13 +22,13 @@
           loading="lazy"
         />
         <!-- Fallback si pas de couverture : icône livre. -->
-        <div v-else class="text-5xl text-blue-700/50">📖</div>
+        <AppIcon v-else name="book" :size="46" :stroke-width="1.4" class="text-primary/40" />
       </div>
       <div class="p-4 flex flex-col gap-1">
         <h3 class="text-base font-semibold leading-tight" :title="book.title">{{ book.title }}</h3>
-        <p class="text-sm text-gray-500 truncate">✍️ {{ authorsText }}</p>
+        <p class="text-sm text-gray-500 truncate">{{ authorsText }}</p>
         <!-- Année affichée seulement si on l'a (l'API ne la donne pas toujours). -->
-        <p v-if="book.year" class="text-sm text-gray-500">📅 {{ book.year }}</p>
+        <p v-if="book.year" class="text-sm text-gray-400">{{ book.year }}</p>
       </div>
     </router-link>
 
@@ -38,12 +38,12 @@
     -->
     <button
       type="button"
-      class="absolute top-2 right-2 w-9 h-9 rounded-full flex items-center justify-center text-xl shadow-sm"
-      :class="isFav ? 'bg-red-600 text-white' : 'bg-white/90 text-red-600'"
+      class="absolute top-2 right-2 w-9 h-9 rounded-full flex items-center justify-center shadow-sm transition"
+      :class="isFav ? 'bg-rose-600 text-white' : 'bg-white/90 text-rose-600 hover:bg-white'"
       :aria-label="isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'"
       @click.stop="toggleFavorite"
     >
-      {{ isFav ? '♥' : '♡' }}
+      <AppIcon name="heart" :filled="isFav" :size="18" />
     </button>
   </article>
 </template>
@@ -51,9 +51,11 @@
 <script>
 import { useFavoritesStore } from '@/stores/favorites.js'
 import { getCoverUrl } from '@/services/openLibrary.js'
+import AppIcon from '@/components/AppIcon.vue'
 
 export default {
   name: 'BookCard',
+  components: { AppIcon },
 
   props: {
     // Objet livre : { id, title, authors, year, coverId }

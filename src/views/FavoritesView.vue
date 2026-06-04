@@ -16,7 +16,7 @@
 
     <EmptyState
       v-if="!favorites.count"
-      icon="💔"
+      icon="heart"
       title="Aucun favori pour le moment"
       description="Ajoutez des livres à vos favoris depuis la page de recherche ou la page de détails."
     >
