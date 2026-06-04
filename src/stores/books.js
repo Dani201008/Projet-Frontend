@@ -1,125 +1,76 @@
-/*
-|--------------------------------------------------------------------------
-| Fichier  : src/stores/books.js
-| Auteur   : Dani
-| Rôle     : Store Pinia centralisant les recherches de livres.
-|            Gère les résultats, les erreurs et les états de chargement.
-| Créé le  : 27.05.2026
-| Modifié  : 29.05.2026
-|--------------------------------------------------------------------------
-*/
-
+// Importation de Pinia pour créer un store global
 import { defineStore } from 'pinia'
+
+// Importation du service permettant d'effectuer des recherches via l'API Open Library
 import { searchBooks } from '@/services/openLibrary.js'
 
-/**
- * Nombre maximum de résultats demandés à l'API.
- * Utilisé pour limiter le volume affiché dans l'interface.
- */
+// Nombre de résultats récupérés par page
 const RESULTS_PER_PAGE = 24
 
 /**
- * Transforme un document brut Open Library
- * en objet simplifié utilisable par les composants UI.
- *
- * @param {Object} doc - Livre brut retourné par l'API.
- * @returns {Object} Livre normalisé.
+ * Transforme les données brutes retournées par l'API
+ * en un format simplifié utilisé dans l'application.
  */
 function mapBook(doc) {
     return {
-
-        // L'API retourne "/works/OL45W" ; on garde uniquement l'identifiant court.
+        // Identifiant unique du livre
         id: (doc.key || '').replace('/works/', ''),
 
-        // Valeur de secours si aucun titre n'est disponible.
+        // Titre du livre ou valeur par défaut si absent
         title: doc.title || 'Titre inconnu',
 
-        // Tableau des auteurs retournés par l'API.
+        // Liste des auteurs
         authors: doc.author_name || [],
 
-        // null si l'année de publication est inconnue.
+        // Année de première publication
         year: doc.first_publish_year || null,
 
-        // null si aucune couverture n'est disponible.
+        // Identifiant de la couverture du livre
         coverId: doc.cover_i || null
     }
 }
 
-/**
- * Store principal des livres.
- * Centralise l'état afin qu'il puisse être partagé
- * entre plusieurs vues ou composants.
- */
+// Définition du store Pinia dédié à la gestion des livres
 export const useBooksStore = defineStore('books', {
 
+    /**
+     * État global du store
+     */
     state: () => ({
-
-        /**
-         * Dernier terme effectivement recherché.
-         * Utilisé pour conserver le contexte de recherche.
-         */
-        query: '',
-
-        /** Tableau des livres normalisés. */
-        results: [],
-
-        /** true pendant toute la durée d'un appel API. */
-        loading: false,
-
-        /**
-         * true pendant le chargement de résultats supplémentaires.
-         * Utilisé pour le bouton "Charger plus".
-         */
-        loadingMore: false,
-
-        /** Message d'erreur affichable dans l'interface. */
-        error: null,
-
-        /**
-         * Nombre total de résultats côté serveur.
-         * Peut dépasser results.length car les résultats sont paginés.
-         */
-        total: 0,
-
-        /** Page actuellement chargée depuis l'API. */
-        currentPage: 1,
-
-        /**
-         * Critère de tri sélectionné par l'utilisateur.
-         * Valeurs possibles : relevance, title, year.
-         */
-        sortBy: 'relevance',
-
-        /** Année minimale utilisée pour filtrer les résultats. */
-        minYear: ''
+        query: '',            // Texte de recherche saisi par l'utilisateur
+        results: [],          // Liste des livres récupérés
+        loading: false,       // Indique si une recherche est en cours
+        loadingMore: false,   // Indique si un chargement supplémentaire est en cours
+        error: null,          // Message d'erreur éventuel
+        total: 0,             // Nombre total de résultats trouvés
+        currentPage: 1,       // Page actuellement chargée
+        sortBy: 'relevance',  // Critère de tri sélectionné
+        minYear: ''           // Année minimale pour le filtrage
     }),
 
+    /**
+     * Getters : données calculées à partir de l'état
+     */
     getters: {
 
-        /**
-         * Indique s'il reste encore des résultats à charger.
-         * Compare le nombre actuel de résultats avec le total serveur.
-         */
+        // Vérifie s'il reste des résultats à charger
         hasMore: (state) => state.results.length < state.total,
 
-        /**
-         * Retourne les résultats filtrés et triés.
-         */
+        // Retourne les résultats filtrés et triés
         filteredResults: (state) => {
-
             let list = [...state.results]
 
-            // Filtrage par année minimale.
+            // Filtrage par année minimale
             if (state.minYear) {
                 const year = Number(state.minYear)
                 list = list.filter(book => book.year && book.year >= year)
             }
 
-            // Tri alphabétique par titre.
+            // Tri alphabétique par titre
             if (state.sortBy === 'title') {
                 list.sort((a, b) => a.title.localeCompare(b.title))
 
-                // Tri décroissant par année.
+                // Tri décroissant par année de publication
             } else if (state.sortBy === 'year') {
                 list.sort((a, b) => (b.year || 0) - (a.year || 0))
             }
@@ -128,146 +79,105 @@ export const useBooksStore = defineStore('books', {
         }
     },
 
+    /**
+     * Actions : méthodes permettant de modifier l'état
+     */
     actions: {
 
         /**
-         * Lance une recherche Open Library
-         * et gère tous les états.
-         *
-         * @param {string} newQuery - Texte recherché par l'utilisateur.
+         * Effectue une nouvelle recherche de livres.
+         * @param {string} newQuery Texte saisi par l'utilisateur
          */
         async search(newQuery) {
 
-            // Supprime les espaces inutiles.
+            // Suppression des espaces inutiles
             const trimmed = (newQuery || '').trim()
 
-            /**
-             * Si la recherche est vide :
-             * - on réinitialise le store,
-             * - on évite un appel API inutile.
-             */
+            // Si la recherche est vide, on réinitialise le store
             if (!trimmed) {
                 this.reset()
                 return
             }
 
-            // Active le spinner principal.
+            // Initialisation de l'état de chargement
             this.loading = true
-
-            // Réinitialise l'erreur précédente.
             this.error = null
-
-            // Sauvegarde du terme recherché.
             this.query = trimmed
-
-            // Retour à la première page.
             this.currentPage = 1
 
             try {
-
-                /**
-                 * Appel API Open Library.
-                 * Résultats limités à 24 éléments.
-                 */
+                // Appel à l'API Open Library
                 const data = await searchBooks(trimmed, {
                     limit: RESULTS_PER_PAGE,
                     page: 1
                 })
 
-                /**
-                 * Normalisation des données API
-                 * pour simplifier l'utilisation côté UI.
-                 */
+                // Conversion des données reçues
                 this.results = (data.docs || []).map(mapBook)
 
-                // Nombre total de résultats trouvés.
+                // Nombre total de résultats disponibles
                 this.total = data.numFound || 0
 
             } catch (err) {
 
-                // Erreur complète visible dans la console.
+                // Gestion des erreurs réseau ou API
                 console.error('Erreur recherche :', err)
 
-                /**
-                 * Message utilisateur générique :
-                 * aucun détail technique n'est affiché.
-                 */
                 this.error =
                     'Impossible de récupérer les résultats. Vérifiez votre connexion.'
 
-                // Évite d'afficher d'anciens résultats.
                 this.results = []
-
-                // Réinitialise le compteur total.
                 this.total = 0
 
             } finally {
 
-                /**
-                 * Exécuté dans tous les cas :
-                 * succès, erreur ou exception.
-                 */
+                // Fin du chargement
                 this.loading = false
             }
         },
 
         /**
-         * Charge des résultats supplémentaires
-         * depuis la page suivante.
+         * Charge la page suivante de résultats.
+         * Utilisé pour le bouton "Voir plus".
          */
         async loadMore() {
 
-            /**
-             * Empêche :
-             * - les doubles appels,
-             * - les appels concurrents,
-             * - les chargements inutiles.
-             */
+            // Empêche les chargements simultanés ou inutiles
             if (this.loadingMore || this.loading || !this.hasMore) return
 
-            // Active le spinner secondaire.
             this.loadingMore = true
-
-            // Réinitialise l'erreur précédente.
             this.error = null
 
             try {
-
-                // Calcul de la prochaine page.
+                // Calcul de la prochaine page
                 const nextPage = this.currentPage + 1
 
-                /**
-                 * Appel API pour récupérer
-                 * les résultats suivants.
-                 */
+                // Récupération des nouveaux résultats
                 const data = await searchBooks(this.query, {
                     limit: RESULTS_PER_PAGE,
                     page: nextPage
                 })
 
-                // Normalisation des nouveaux livres.
+                // Conversion des nouvelles données
                 const newBooks = (data.docs || []).map(mapBook)
 
-                /**
-                 * Ajoute les nouveaux résultats
-                 * à ceux déjà affichés.
-                 */
+                // Ajout des nouveaux livres à la liste existante
                 this.results = [...this.results, ...newBooks]
 
-                // Mise à jour de la page courante.
+                // Mise à jour du numéro de page
                 this.currentPage = nextPage
 
             } catch (err) {
 
-                // Erreur complète visible dans la console.
+                // Gestion des erreurs de chargement
                 console.error('Erreur chargement supplémentaire :', err)
 
-                // Message affiché à l'utilisateur.
-                this.error = 'Impossible de charger plus de résultats.'
+                this.error =
+                    'Impossible de charger plus de résultats.'
 
             } finally {
 
-                // Désactive le spinner secondaire.
+                // Fin du chargement supplémentaire
                 this.loadingMore = false
             }
         },

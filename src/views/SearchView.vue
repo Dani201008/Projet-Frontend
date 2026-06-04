@@ -1,9 +1,15 @@
 <!--
   Fichier  : src/views/SearchView.vue
   Auteur   : Timmy (commit 1.4) puis Dani (commit 1.5 — ajout des états + refacto store)
-  Rôle     : Page de recherche des livres. Gère l’affichage, les filtres et l’interaction avec le store Pinia.
+  Rôle     : Page principale de recherche des livres.
+              Elle gère :
+              - la saisie de recherche,
+              - l'affichage des résultats,
+              - les filtres,
+              - les états de chargement et d'erreur,
+              - la communication avec le store Pinia.
   Créé le  : 08.05.2026
-  Modifié  : 29.05.2026
+  Modifié  : 04.06.2026
 -->
 
 <template>
@@ -12,10 +18,13 @@
     <!-- Titre de la page -->
     <h1 class="text-2xl font-bold">Recherche</h1>
 
-    <!-- Barre de recherche (input lié en v-model) -->
-    <SearchBar v-model="searchInput" @submit="onSearch" />
+    <!-- Barre de recherche liée à la variable searchInput -->
+    <SearchBar
+        v-model="searchInput"
+        @submit="onSearch"
+    />
 
-    <!-- Filtres affichés uniquement si des résultats existent -->
+    <!-- Affichage des filtres uniquement lorsqu'il y a des résultats -->
     <FilterBar
         v-if="store.results.length"
         :sort-by="store.sortBy"
@@ -25,23 +34,24 @@
         @reset="resetFilters"
     />
 
-    <!-- Compteur de résultats -->
+    <!-- Informations sur le nombre de résultats affichés -->
     <p
         v-if="store.query && store.results.length && !store.error"
         class="text-sm text-gray-500"
     >
-      <strong>{{ store.filteredResults.length }}</strong> résultat(s) affiché(s) sur
+      <strong>{{ store.filteredResults.length }}</strong>
+      résultat(s) affiché(s) sur
       <strong>{{ store.total.toLocaleString('fr-FR') }}</strong>
       pour « {{ store.query }} »
     </p>
 
-    <!-- État : chargement initial -->
+    <!-- Affichage du spinner pendant le chargement initial -->
     <LoadingSpinner
         v-if="store.loading && !store.results.length"
         message="Recherche en cours..."
     />
 
-    <!-- État : erreur -->
+    <!-- Affichage d'un message d'erreur avec possibilité de relancer la recherche -->
     <ErrorMessage
         v-else-if="store.error && !store.results.length"
         :message="store.error"
@@ -49,7 +59,7 @@
         @retry="store.search(store.query)"
     />
 
-    <!-- État : aucun résultat -->
+    <!-- Affichage lorsqu'aucun résultat n'est trouvé -->
     <EmptyState
         v-else-if="store.query && !store.loading && !store.results.length"
         icon="😕"
@@ -57,7 +67,7 @@
         :description="`Aucun livre ne correspond à « ${store.query} ».`"
     />
 
-    <!-- État : page vide (aucune recherche lancée) -->
+    <!-- État initial avant toute recherche -->
     <EmptyState
         v-else-if="!store.query"
         icon="🔍"
@@ -65,13 +75,13 @@
         description="Tapez un titre, un auteur ou un sujet pour commencer."
     />
 
-    <!-- Résultats -->
+    <!-- Affichage des résultats -->
     <template v-else>
 
-      <!-- Liste des livres filtrés et triés -->
+      <!-- Liste des livres filtrés -->
       <BookList :books="store.filteredResults" />
 
-      <!-- Bouton "charger plus" si pagination disponible -->
+      <!-- Bouton permettant de charger les pages suivantes -->
       <div v-if="store.hasMore" class="flex justify-center pt-4">
         <button
             type="button"
@@ -89,7 +99,11 @@
 </template>
 
 <script>
+
+// Store Pinia contenant la logique métier de recherche
 import { useBooksStore } from '@/stores/books.js'
+
+// Composants utilisés dans la vue
 import SearchBar from '@/components/SearchBar.vue'
 import FilterBar from '@/components/FilterBar.vue'
 import BookList from '@/components/BookList.vue'
@@ -98,8 +112,11 @@ import ErrorMessage from '@/components/ErrorMessage.vue'
 import EmptyState from '@/components/EmptyState.vue'
 
 export default {
+
+  // Nom du composant Vue
   name: 'SearchView',
 
+  // Déclaration des composants enfants
   components: {
     SearchBar,
     FilterBar,
@@ -109,20 +126,20 @@ export default {
     EmptyState
   },
 
+  /**
+   * Données locales du composant.
+   * searchInput est initialisé à partir du paramètre q de l'URL.
+   */
   data() {
     return {
-      /**
-       * Valeur locale de la barre de recherche.
-       * Synchronisée avec l’URL (?q=...).
-       */
       searchInput: this.$route.query.q?.toString() || ''
     }
   },
 
   computed: {
+
     /**
-     * Accès au store Pinia des livres.
-     * Centralise toute la logique métier.
+     * Fournit un accès simplifié au store Pinia.
      */
     store() {
       return useBooksStore()
@@ -130,25 +147,31 @@ export default {
   },
 
   watch: {
+
     /**
-     * Synchronisation avec l’URL.
-     * Permet :
-     * - navigation navigateur (retour / suivant)
-     * - partage de lien
-     * - modification directe de l’URL
+     * Surveille les changements du paramètre q dans l'URL.
+     * Permet de relancer automatiquement une recherche lorsque
+     * l'utilisateur modifie l'URL ou utilise les boutons du navigateur.
      */
     '$route.query.q'(newQuery) {
+
       this.searchInput = newQuery?.toString() || ''
-      if (newQuery) this.store.search(newQuery.toString())
+
+      if (newQuery) {
+        this.store.search(newQuery.toString())
+      }
     }
   },
 
+  /**
+   * Au chargement de la page :
+   * si une recherche est déjà présente dans l'URL,
+   * elle est automatiquement exécutée.
+   */
   mounted() {
-    /**
-     * Lance automatiquement une recherche
-     * si un paramètre ?q= est présent au chargement.
-     */
+
     const q = this.$route.query.q?.toString()
+
     if (q && q !== this.store.query) {
       this.store.search(q)
     }
@@ -157,16 +180,20 @@ export default {
   methods: {
 
     /**
-     * Déclenche une recherche via le routeur.
-     * L’URL devient la source de vérité.
+     * Déclenchée lors de la soumission du formulaire.
+     * Met à jour l'URL avec le terme recherché.
+     *
+     * @param {string} term Terme recherché
      */
     onSearch(term) {
-      this.$router.push({ name: 'search', query: { q: term } })
+      this.$router.push({
+        name: 'search',
+        query: { q: term }
+      })
     },
 
     /**
-     * Réinitialise uniquement les filtres
-     * sans toucher aux résultats.
+     * Réinitialise les filtres de tri et d'année.
      */
     resetFilters() {
       this.store.sortBy = 'relevance'
